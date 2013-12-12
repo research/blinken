@@ -228,7 +228,7 @@ function Blinken(target) {
     // Publishing
     var published = false;
     var token;
-    var apiPath = 'http://141.212.120.173';
+    var apiPath = 'http://blinken.eecs.umich.edu';
     function checkStatus() {
         $.get(apiPath + '/status/' + token, function(data) {
             if (data.value > 0) {
