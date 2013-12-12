@@ -6,14 +6,30 @@ var vm = require('vm'),
 
 var runId = 0;
 
+// Return alpha scale factor to keep total energy of strand less than max
+function getBrightnessScale(lights) {
+	var max = 0.95;
+	var e = 0;
+	for (var i=0; i < lights.length; i++) {
+		var l = lights[i];
+		e += (l.r + l.g + l.b) * l.a / 3;
+	}
+	e /= lights.length;
+	if (e > max) {
+		return max / e; 
+	}
+	return 1;
+}
+
 function StrandControl(host, port) {
 	this.sock = dgram.createSocket('udp4');	
 	this.host = host;
 	this.port = port;
 	this.update = function(lights, callback) {
 		payload = Array();
+		var scale = getBrightnessScale(lights);
 		for (var i=0; i < lights.length; i++) {
-			payload = payload.concat(lights[i].strandBytes());
+			payload = payload.concat(lights[i].strandBytes(scale));
 		}
 		var packet = Buffer(payload);
 		this.sock.send(packet, 0, packet.length, port, host,

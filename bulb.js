@@ -18,8 +18,11 @@ function Bulb() {
             Math.round(this.a * this.g * 255) + ',' +
             Math.round(this.a * this.b * 255) + ')';
     };
-	this.strandBytes = function() {
-		return [Math.round(this.a*200),
+	this.strandBytes = function(scale) {
+		if (typeof scale === 'undefined') {
+			scale = 1;
+		}
+		return [Math.round(scale*this.a*255),
 				Math.round(this.r*15),
 				Math.round(this.g*15),
 				Math.round(this.b*15)];
