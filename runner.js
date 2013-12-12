@@ -29,7 +29,7 @@ function StrandControl(host, port) {
 		payload = Array();
 		var scale = getBrightnessScale(lights);
 		for (var i=0; i < lights.length; i++) {
-			payload = payload.concat(lights[i].strandBytes(scale));
+			payload = payload.concat(lights[lights.length-1-i].strandBytes(scale));
 		}
 		var packet = Buffer(payload);
 		this.sock.send(packet, 0, packet.length, port, host,
@@ -61,7 +61,7 @@ exports.run = function(params) {
 				setTimeout(checkCancel, 100);
 			}
 	}
-	setTimeout(checkCancel, 100);
+	setTimeout(checkCancel, 50);
 
 	var fakeWindow = {};
 	fakeWindow.runnerWindow = {};
