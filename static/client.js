@@ -228,7 +228,7 @@ function Blinken(target) {
     // Publishing
     var published = false;
     var token;
-    var apiPath = 'http://141.212.111.248:3000';
+    var apiPath = 'http://141.212.120.173';
     function checkStatus() {
         $.get(apiPath + '/status/' + token, function(data) {
             if (data.value > 0) {

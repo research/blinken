@@ -6,7 +6,10 @@ var app = express();
 
 app.use(express.urlencoded());
 app.use(express.logger());
-app.use(express.static(path.join(__dirname, 'static')));
+
+app.get('/client.js', function(req, res){
+	res.sendfile('static/client.js');
+});
 
 app.post('/publish', function(req, res){
 	res.header('Access-Control-Allow-Origin', '*');
@@ -35,5 +38,5 @@ app.all('/cancel/:token', function(req, res){
 	}
 });
 
-app.listen(3000);
+app.listen(3000, 'localhost');
 console.log('Listening');
