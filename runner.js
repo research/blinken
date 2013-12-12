@@ -23,7 +23,7 @@ function StrandControl(host, port) {
 		callback();
 	}
 }
-var strand = new StrandControl('blinken.eecs.umich.edu', 1337);
+var strand = new StrandControl('141.212.108.209', 1337);
 
 exports.run = function(params) {
 	var myId = ++runId;
