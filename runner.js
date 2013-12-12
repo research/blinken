@@ -8,7 +8,7 @@ var runId = 0;
 
 // Return alpha scale factor to keep total energy of strand less than max
 function getBrightnessScale(lights) {
-	var max = 0.95;
+	var max = 0.55; // empirically determined by red/white alternation test
 	var e = 0;
 	for (var i=0; i < lights.length; i++) {
 		var l = lights[i];
