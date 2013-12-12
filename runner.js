@@ -9,8 +9,8 @@ var runId = 0;
 function StrandControl(host, port) {
 	this.sock = dgram.createSocket('udp4');	
 	this.host = host;
-	this.port = port;	
-	this.update = function(lights) {
+	this.port = port;
+	this.update = function(lights, callback) {
 		payload = Array();
 		for (var i=0; i < lights.length; i++) {
 			payload = payload.concat(lights[i].strandBytes());
@@ -20,6 +20,7 @@ function StrandControl(host, port) {
 					   function(err, b) {
 			if (err) { console.log('Network error: ' + err); }
 		});
+		callback();
 	}
 }
 var strand = new StrandControl('141.212.108.209', 1337);
@@ -81,10 +82,10 @@ exports.run = function(params) {
 		if (runId != myId) {
 			return;
 		}
-        for (var i = 0; i < 100; i++) {
-            if (typeof lights[i] !== 'object' || lights[i] instanceof Bulb === false) {
-                lights[i] = new Bulb();
-            }
+	        for (var i = 0; i < 100; i++) {
+	            if (typeof lights[i] !== 'object' || lights[i] instanceof Bulb === false) {
+                	lights[i] = new Bulb();
+        	    }	
 		}
 		var delay;
 		try {
@@ -94,14 +95,15 @@ exports.run = function(params) {
 			return params.after(-1, 'Error in step function: ' + e.toString());
 		}
 		fixLights();
-		strand.update(lights);
-		if (typeof delay !== 'number') {
-            delay = 30;
-		} else if (delay < 0) {
-			runId++;
-			return params.after(0, 'Completed');
-		}
-		setTimeout(runStep, delay);
+		strand.update(lights, function(){
+			if (typeof delay !== 'number') {
+		            delay = 30;
+			} else if (delay < 0) {
+				runId++;
+				return params.after(0, 'Completed');
+			}
+			setTimeout(runStep, delay);
+		});
 	}
 	runStep();
 	return 0;

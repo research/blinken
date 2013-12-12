@@ -11,6 +11,6 @@ function (lights) {
 
     return function () {
         lights.unshift(lights.pop());
-        return 200;
+        return 100;
     };
 }
