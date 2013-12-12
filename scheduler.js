@@ -40,7 +40,7 @@ function makeToken() {
 }
 
 function getIdleCode(callback) {
-	return fs.readFile('./idle.js', 'utf8', function(err,data) {
+	return fs.readFile(__dirname + '/static/idle.js', 'utf8', function(err,data) {
 		if (err) {
 			throw new Error(err);
 		}

@@ -52,11 +52,11 @@ exports.run = function(params) {
 	var script, sandbox = {window : fakeWindow};
 	try {
 		script = vm.createScript('main = ' + params.code);
+		script.runInNewContext(sandbox);
 	} catch (e) {
 		runId++;
 		return params.after(-1, 'Error during compilation: ' + e.toString());
 	}
-	script.runInNewContext(sandbox);
 
 	var lights = Array(100);
 	function fixLights() {
