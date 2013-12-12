@@ -8,7 +8,7 @@ app.use(express.urlencoded());
 app.use(express.logger());
 
 app.get('/', function(req, res) {
-	res.send('<a href="http://jsbin.com/blinken/5/edit#javascript,console,output">Example</a>');
+	res.send('<a href="http://jsbin.com/blinken/8/edit#javascript,console,output">Example</a>');
 });
 
 app.get('/client.js', function(req, res){
