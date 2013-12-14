@@ -2,6 +2,7 @@ var util = require('util');
 var scheduler = require('./scheduler.js');
 var express = require('express');
 var path = require('path');
+var fs = require('fs');
 var app = express();
 
 app.use(express.urlencoded());
@@ -12,7 +13,14 @@ app.get('/', function(req, res) {
 });
 
 app.get('/client.js', function(req, res){
-	res.sendfile('static/client.js');
+	fs.readFile(__dirname + '/static/client.js', 'utf8', function(err, client) {
+		if (err) { throw new Error(err); }
+		fs.readFile(__dirname + '/bulb.js', 'utf8', function(err, bulb) {
+			if (err) { throw new Error(err); }
+			res.setHeader('Content-Type', 'text/javascript');
+			res.send(client + "\n" + bulb);
+		});
+	});
 });
 
 app.post('/publish', function(req, res){

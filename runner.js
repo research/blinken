@@ -40,6 +40,19 @@ function StrandControl(host, port) {
 }
 var strand = new StrandControl('141.212.108.209', 1337);
 
+Bulb.prototype.strandBytes = function(scale) {
+	function limit(x) {
+		return Math.min(1, Math.max(0, x));
+    	}
+	if (typeof scale === 'undefined') {
+		scale = 1;
+	}
+	return [Math.round(scale*limit(this.a)*255),
+			Math.round(limit(this.r)*15),
+			Math.round(limit(this.g)*15),
+			Math.round(limit(this.b)*15)];
+};
+
 exports.run = function(params) {
 	var myId = ++runId;
 
