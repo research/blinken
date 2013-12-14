@@ -180,22 +180,24 @@ function Blinken(target) {
         $(send).click(function(){publish(code)});
         var myId = runId;
         var lights = Array(100);
-        function fixLights() {
+        function updateLights() {
             for (var i = 0; i < lights.length; i++) {
                 if (typeof lights[i] !== 'object' || lights[i] instanceof Bulb === false) {
                     lights[i] = new Bulb();
                 }
+                objects[i].style.backgroundColor = lights[i].cssColor();
             }
         }
-        fixLights();
+        updateLights();
         var step;
         try {
             step = code(lights);
         } catch (e) {
             $(send).text('Error (see console)');
             throw e;
-        }
-        fixLights();
+        }	
+        updateLights();
+
         var animate = function () {
             var delay;
             try {
@@ -204,11 +206,8 @@ function Blinken(target) {
                 $(send).text('Error (see console)');
                 throw e;
             }
-            fixLights();
+            updateLights();
             send.disabled = false;
-            for (var i = 0; i < lights.length; i++) {
-                objects[i].style.backgroundColor = lights[i].cssColor();
-            }
             if (typeof delay !== 'number') {
                 delay = 30;
             } else if (delay < 0) {
@@ -219,7 +218,11 @@ function Blinken(target) {
                 setTimeout(animate, delay);
             }
         };
-        animate();
+	if (typeof step !== 'function') {
+		runId++;
+		return;
+	}
+	animate();
     }
     function execStop() {
         runId++;

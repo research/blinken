@@ -25,7 +25,7 @@ function StrandControl(host, port) {
 	this.sock = dgram.createSocket('udp4');	
 	this.host = host;
 	this.port = port;
-	this.update = function(lights, callback) {
+	this.update = function(lights) {
 		payload = Array();
 		var scale = getBrightnessScale(lights);
 		for (var i=0; i < lights.length; i++) {
@@ -36,7 +36,6 @@ function StrandControl(host, port) {
 					   function(err, b) {
 			if (err) { console.log('Network error: ' + err); }
 		});
-		callback();
 	}
 }
 var strand = new StrandControl('141.212.108.209', 1337);
@@ -76,15 +75,16 @@ exports.run = function(params) {
 	}
 
 	var lights = Array(100);
-	function fixLights() {
-        for (var i = 0; i < lights.length; i++) {
-            if (typeof lights[i] !== 'object' || lights[i] instanceof Bulb === false) {
-                lights[i] = new Bulb();
-            }
+	function updateLights() {
+        	for (var i = 0; i < lights.length; i++) {
+	            if (typeof lights[i] !== 'object' || lights[i] instanceof Bulb === false) {
+        	        lights[i] = new Bulb();
+	            }
 		}
+		strand.update(lights);
 	}
+	updateLights();
 
-	fixLights();
 	var step;
 	try {
 		step = sandbox.main(lights);
@@ -92,7 +92,7 @@ exports.run = function(params) {
 		runId++;
 		return params.after(-1, 'Error during initialization: ' + e.toString());
 	}
-	fixLights();
+	updateLights();
 
 	function runStep() {
 		if (runId != myId) {
@@ -110,17 +110,18 @@ exports.run = function(params) {
 			runId++;
 			return params.after(-1, 'Error in step function: ' + e.toString());
 		}
-		fixLights();
-		strand.update(lights, function(){
-			if (typeof delay !== 'number') {
-		            delay = 30;
-			} else if (delay < 0) {
-				runId++;
-				return params.after(0, 'Completed');
-			}
-			setTimeout(runStep, delay);
-		});
+		updateLights();
+		if (typeof delay !== 'number') {
+	            delay = 30;
+		} else if (delay < 0) {
+			runId++;
+			return params.after(0, 'Completed');
+		}
+		setTimeout(runStep, delay);
+	}
+	if (typeof step !== 'function') {
+		runId++;
+		return params.after(0, 'Completed');
 	}
 	runStep();
-	return 0;
 }
