@@ -205,6 +205,7 @@ function Blinken(target) {
                 throw e;
             }
             fixLights();
+            send.disabled = false;
             for (var i = 0; i < lights.length; i++) {
                 objects[i].style.backgroundColor = lights[i].cssColor();
             }
@@ -217,7 +218,6 @@ function Blinken(target) {
             if (myId == runId) {
                 setTimeout(animate, delay);
             }
-            send.disabled = false;
         };
         animate();
     }
