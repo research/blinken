@@ -47,6 +47,8 @@ Bulb.prototype.strandBytes = function(scale) {
 	if (typeof scale === 'undefined') {
 		scale = 0.5; // adjust for nonlinear response
 	}
+	// TODO: We should correct for gamma here, but it interacts
+	//       with voltage scaling.
 	return [Math.round(scale*limit(this.a)*255),
 			Math.round(limit(this.r)*15),
 			Math.round(limit(this.g)*15),
