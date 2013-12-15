@@ -40,6 +40,7 @@ function StrandControl(host, port) {
 }
 var strand = new StrandControl('141.212.108.209', 1337);
 
+Bulb.prototype.gamma = 1; // Unscale color on lights
 Bulb.prototype.strandBytes = function(scale) {
 	function limit(x) {
 		return Math.min(1, Math.max(0, x));
@@ -78,7 +79,7 @@ exports.run = function(params) {
 	var fakeWindow = {};
 	fakeWindow.runnerWindow = {};
 	fakeWindow.runnerWindow.protect = function(){};
-	var script, sandbox = {window : fakeWindow};
+	var script, sandbox = {window : fakeWindow, Bulb : Bulb};
 	try {
 		script = vm.createScript('main = ' + params.code);
 		script.runInNewContext(sandbox);
