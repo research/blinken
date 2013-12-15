@@ -10,21 +10,24 @@ PI_PORT = 22
 
 s = None
 
+def cur_time():
+    return time.strftime("%Y %b %d %T", time.gmtime())
+
 for retries in range(3):
 
     try:
         s = socket.create_connection((PI_ADDR, PI_PORT), 10.0)
     except socket.timeout:
         # connection timeout, wait 5 seconds, try again
-        print 'Connect timeout %d...' % (retries+1)
+        print '[%s] Connect timeout %d...' % (cur_time(), retries+1)
         time.sleep(5)
         continue
 
-    print 'Connect success, quitting'
+    print '[%s] Connect success, quitting' % (cur_time())
     # Sucess, no need to reboot everything
     sys.exit(0)
     
-print 'Going to reboot pi...'
+print '[%s] Going to reboot pi...' % (cur_time())
 w = wemo.WemoSwitch(wemo.WEMO_1_HOST, wemo.WEMO_1_PORT)
 
 
@@ -34,15 +37,15 @@ def get_wemo_state(w):
         state = 'on'
     return state
 
-print 'Current wemo state: %s' % (get_wemo_state(w))
+print '[%s] Current wemo state: %s' % (cur_time(), get_wemo_state(w))
 
-print 'Shutting down wemo, sleeping 15 seconds'
+print '[%s] Shutting down wemo, sleeping 15 seconds' % (cur_time())
 w.setOff()
-print 'Current wemo state: %s' % (get_wemo_state(w))
+print '[%s] Current wemo state: %s' % (cur_time(), get_wemo_state(w))
 time.sleep(15)
 
-print 'Turning on wemo'
+print '[%s] Turning on wemo' % (cur_time())
 w.setOn()
-print 'Current wemo state: %s' % (get_wemo_state(w))
+print '[%s] Current wemo state: %s' % (cur_time(), get_wemo_state(w))
 time.sleep(10)
 
