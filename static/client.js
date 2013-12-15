@@ -195,7 +195,7 @@ function Blinken(target) {
         } catch (e) {
             $(send).text('Error (see console)');
             throw e;
-        }	
+        }
         updateLights();
 
         var animate = function () {
@@ -218,11 +218,11 @@ function Blinken(target) {
                 setTimeout(animate, delay);
             }
         };
-	if (typeof step !== 'function') {
-		runId++;
-		return;
-	}
-	animate();
+        if (typeof step !== 'function') {
+                runId++;
+                return;
+        }
+        animate();
     }
     function execStop() {
         runId++;
@@ -240,9 +240,9 @@ function Blinken(target) {
             } else if (data.value == 0) {
                 $(send).text(data.message + ".  Run again?");
                 published = false;
-			} else {
+                        } else {
                 $(send).text(data.message);
-				published = false;
+                                published = false;
             }
         }, 'json');
     }

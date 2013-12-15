@@ -27,7 +27,7 @@ function Bulb(w,x,y,z) {
         if (typeof z === 'number') {
             this.a = z;
         }
-    }    
+    }
 
     // You can set color channels and overall brightness ("alpha") directly.
     // Range is 0-1:
@@ -76,16 +76,16 @@ function Bulb(w,x,y,z) {
     this.gamma = 0.33;
 
     this.cssColor = function () {
-        return 'rgb(' + Math.round(Math.pow(limit(this.a) * limit(this.r), this.gamma) * 255) + ',' + 
-                        Math.round(Math.pow(limit(this.a) * limit(this.g), this.gamma) * 255) + ',' + 
+        return 'rgb(' + Math.round(Math.pow(limit(this.a) * limit(this.r), this.gamma) * 255) + ',' +
+                        Math.round(Math.pow(limit(this.a) * limit(this.g), this.gamma) * 255) + ',' +
                         Math.round(Math.pow(limit(this.a) * limit(this.b), this.gamma) * 255) + ')';
     };
 
     function limit(x) {
-	return Math.min(1, Math.max(0, x));
+        return Math.min(1, Math.max(0, x));
     }
 }
 
 if (typeof exports !== 'undefined') {
-	exports.Bulb = Bulb;
+    exports.Bulb = Bulb;
 }
