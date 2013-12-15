@@ -46,7 +46,7 @@ Bulb.prototype.strandBytes = function(scale) {
 		return Math.min(1, Math.max(0, x));
     	}
 	if (typeof scale === 'undefined') {
-		scale = 1;
+		scale = 0.5; // adjust for nonlinear response
 	}
 	return [Math.round(scale*limit(this.a)*255),
 			Math.round(limit(this.r)*15),

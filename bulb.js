@@ -73,7 +73,7 @@ function Bulb(w,x,y,z) {
     ////////////////////////////////////////////////////////////
     // Internal stuff
 
-    this.gamma = 0.3; // scale color in simulator to match bulbs
+    this.gamma = 1;
 
     this.cssColor = function () {
         return 'rgb(' + Math.round(Math.pow(limit(this.a) * limit(this.r), this.gamma) * 255) + ',' + 
