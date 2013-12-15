@@ -80,6 +80,17 @@ function getIdleCode(callback) {
 	});
 }
 
+function saveCode(code) {
+	var uploadPath = __dirname + '/uploads/';
+	var hash = crypto.createHash('sha1').update(code).digest('hex');
+	console.log('job hash: ' + hash);
+	console.log(code);
+	files = fs.readdirSync(uploadPath);
+	if (files.filter(function(x){return x.search(hash)>=0}).length == 0) {
+		fs.writeFileSync(uploadPath + '/' + hash + '.js', code);
+	}
+}
+
 function scheduler() {
 	if (queue.length > 0) {
 		var token = queue.shift();
@@ -87,16 +98,16 @@ function scheduler() {
 			return scheduler();
 		}
 		jobs[token].status = {value: 20, message: 'Running'};
-		console.log(jobs[token].code);
 		stopTime = Date.now()/1000 + jobs[token].limit;
+		saveCode(jobs[token].code);
 		return runner.run({ // User program
 			code: jobs[token].code,
 			limit: jobs[token].limit,
-			cancel: function() { return jobs[token].cancel },				  
+			cancel: function() { return jobs[token].cancel },
 			after: function(status, message) {
 				if (status == 0) {
 					jobs[token].status = {value: 0, message: message};
-				} else {
+			} else {
 					jobs[token].status = {value: -10, message: message};
 				}
 				scheduler();
