@@ -81,7 +81,6 @@ function getIdleCode(callback) {
 }
 
 function saveCode(code) {
-    code = code.toString;
     var uploadPath = __dirname + '/uploads/';
     var hash = crypto.createHash('sha1').update(code).digest('hex');
     console.log('job hash: ' + hash);
