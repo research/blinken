@@ -1,0 +1,307 @@
+
+<html>
+<head> 
+  <link href="css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="css/bootstrap-responsive.min.css" rel="stylesheet"/>
+  <link href="css/local.css" rel="stylesheet"/>
+</head>
+<body style="background-color: #f5f5f5">
+  <script type="text/JavaScript" src="js/jquery.min.js"></script> 
+  <script type="text/JavaScript" src="js/bootstrap.min.js"></script> 
+
+  <div class="navbar navbar-static-top navbar-inverse">
+    <div class="navbar-inner">
+    <a class="brand" href="/">BBB Blinken Bulbs</a>
+       <ul class="nav pull-right">
+	  <li><a href="http://141.212.108.235/camera.html">Webcam</a></li>
+	  <li><a href="/gallery">Gallery</a></li>
+	  <li><a href="http://jsbin.com/blinken/8/edit#javascript,console,output">Example</a></li>
+	  <li><a href="http://www.reddit.com/r/bbbblinken">Subreddit</a></li>
+       </ul>
+    </div>
+  </div>
+  <div class="content">
+    <div class="container">
+	<div class="row-fluid"> 
+	  <div class="span10 white-panel offset1 title">
+	    <div class="content">
+	    <h2>BBB Blinken Bulbs</h2>
+
+
+<p class="front">
+<!--<img style="float: right; width: 300px; margin-left: 20px;" src="http://hobocomp.com/drop/blinkenlights.jpg"/>-->
+<!--<iframe src="http://141.212.108.235/camera.html" style="height: 640px; width: 360px; zoom: .75; float: right; border: none; overflow: hidden;" scrolling="no"></iframe>-->
+    <div id="video-jwplayer_wrapper" style="display: inline; float: right; width: 270px; height: 480px; margin-left: 20px;">
+      <object type="application/x-shockwave-flash" data="http://141.212.108.235/jwplayer/jwplayer.flash.swf" width="100%" height="100%" bgcolor="#000000" id="video-jwplayer" name="video-jwplayer" tabindex="0">
+        <param name="allowfullscreen" value="true">
+        <param name="allowscriptaccess" value="always">
+        <param name="seamlesstabbing" value="true">
+        <param name="wmode" value="opaque">
+	<param name="logo" value="false">
+      </object>
+      <div id="video-jwplayer_aspect" style="display: none;"></div>
+      <div id="video-jwplayer_jwpsrv" style="position: absolute; top: 0px; z-index: 10;"></div>
+    </div>
+
+    <script src="/js/jwplayer.js"></script>
+
+    <script type="text/javascript">
+    jwplayer('video-jwplayer').setup({
+      flashplayer:"http://141.212.108.235/jwplayer/jwplayer.flash.swf"
+      , file:"rtmp://141.212.108.235/flvplayback/flv:myStream.flv"
+      , autoStart: true
+      , rtmp:{
+        bufferlength:0.1
+      }
+      , deliveryType: "streaming"
+      , width: 270
+      , height: 480
+      , logo: {
+		position: 'top-left'
+	}
+      , player: {
+        modes: {
+          linear: {
+            controls:{
+              stream:{
+                manage:false
+                , enabled: false
+              }
+            }
+          }
+        }
+      }
+      , shows: {
+        streamTimer: {
+          enabled: true
+          , tickRate: 100
+        }
+      }
+    });
+    </script>
+</p>
+<p class="front">
+Hello! Did you know that the lights in the BBB Building are programmable?
+This year, we are providing a new API for the lights to allow people to program them via Javascript.
+This allows us to provide you with a simple simulator to play around with and test your
+light controller function, and then push your controller to the strand for all
+the world to see when you're done.
+</p>
+
+<p class="front">
+<span class="label label-info">TLDR</span>
+With the click of a button, you can run any of the submitted programs from the <a href="/gallery">gallery</a>
+and view them via the <a href="http://141.212.108.235/camera.html">webcam</a>.
+</p>
+
+<p class="front">
+<span class="label label-info">Programmers</span>
+Submit your cool programs to the <a href="http://www.reddit.com/r/bbbblinken">subreddit</a> and see them displayed in the gallery!
+</p>
+
+<!--
+<p class="front">
+<span class="label label-info">New Feature!</span>
+If you're not currently in the BBB Building, don't worry! There is a <a
+href="http://141.212.108.235/camera.html">Webcam</a> that will show you most
+of the lights. 
+</p>
+-->
+
+<h3>Using the API</h3>
+<p>
+To use our simulator and control the lights, you'll need to include our <a
+href="http://blinken.eecs.umich.edu/client.js">client.js</a> library, which
+exports a Blinken object. You can instantiate it using the <code>new</code>
+constructor:
+</p>
+
+<div class="indent" style="width:400px">
+<pre><b>var b = new Blinken();</b></pre>
+</div>
+
+<p>
+This object has a <code>run()</code> method, which takes as an argument an
+<a href="http://en.wikipedia.org/wiki/Anonymous_function">anonymous
+function</a> that is called once to <b>initialize</b> the light strand.
+
+This function is expected to return another anonymous function that is
+periodically called to <b>update</b> the state of the light strand. This update
+function is expected to return the number of milliseconds to wait before the
+update function is called again. Both the initializer and update functions are
+given a <code>lights</code> object as an argument, which represents the
+current state of the light strand. There are 100 lights in our strand (indexed
+0-99), and each light can be assigned individual <a
+href="http://en.wikipedia.org/wiki/RGB_color_model">RGB</a> and brightness
+values. These values are expected as floats between 0 and 1.
+</p>
+
+<h3>Walkthrough Example</h3>
+<p>Confused? Let's walk through a simple example; we'll leave off anonymous
+functions for later. Our simple example will alternate the strand between
+all red and all green lights.</p>
+
+<p>First, let's define the update function, that will be called every 500
+milliseconds to allow us to update the state of the light strand:<p>
+
+<script src="https://gist.github.com/ewust/7957194.js"></script>
+<noscript>
+<pre>
+// global variable that keeps track of if we are red (true) or green (false)
+var strand_red = true;
+
+function update(lights) {
+
+    // Loop over all the lights 
+    for (i=0; i&lt;100; i++) {
+	if (strand_red) {
+            // Set red
+            lights[i].rgb(1, 0, 0);
+	} else {
+            // Set green
+	    lights[i].rgb(0, 1, 0);
+        }
+    }
+    strand_red = !strand_red;
+
+    // Wait 500 ms until we get called again.
+    return 500;
+}
+</pre>
+</noscript>
+
+<p>Now that we have an update function, we need to create an initializer
+function. Our initializer will simply set all the lights brightness to full
+on. Our initializer must also return a pointer to our update function.</p>
+
+<script src="https://gist.github.com/ewust/7957243.js"></script>
+<noscript>
+<pre>
+function initializer(lights) {
+
+    // Set the strand to full brightness
+    for (i=0; i&lt;100; i++) {
+        lights[i].a = 1;
+    }
+
+    // Return our update function
+    return update;
+}
+</pre>
+</noscript>
+
+<p>Finally, we can create the <code>Blinken</code> object, and pass our
+initializer to it:
+</p>
+
+<script src="https://gist.github.com/ewust/7957250.js"></script>
+<noscript>
+<pre>
+var b = new Blinken();
+b.run(initializer);
+</pre>
+</noscript>
+
+
+<h3>Result</h3>
+<p>That's it! As long as we include the <a
+href="http://blinken.eecs.umich.edu/client.js">client.js</a> and <a
+href="http://code.jquery.com/jquery-latest.js">jquery</a> libraries
+on the same page as the above javascript, we'll see something like this when run in
+a browser (feel free to click and drag or use the scroll wheel to zoom in and
+out):
+
+<iframe style="border 1px solid #ccc; margin: auto; display: block;" height="300px" width="200px" src="http://jsbin.com/efELeHo/1"></iframe>
+
+<p>When we're satisfied with our simulation, simply click the <code>Run on
+Stairs</code> button on the simulation page, and then <a
+href="http://141.212.108.235/camera.html">watch it go!</a> Your code may be
+queued behind someone if another program is currently running, but the button
+will change to tell you the current status of your program.</p>
+
+<p>If you're happy with how it looks on the stairs, feel free to submit it to
+the <a href="http://www.reddit.com/r/bbbblinken">BBBBlinken Subreddit</a> for
+all to see, and pick your favorites from the list of already submitted
+blinkens.</p>
+
+<h3>Putting it all together</h3>
+
+<p>You can use any javascript environment you want, including running it in
+your browser locally, but it's easiest to share your code and simulation with
+others (and the <a href="http://www.reddit.com/r/bbbblinken">subreddit</a>) if
+you use a Javascript pastebin-like site. We recommend <a
+href="http://jsbin.com/">jsbin.com</a>, since it allows you to see the console
+as one of the panels. The console can be helpful for finding errors in your
+program. 
+</p>
+
+<p>
+To include the javascript libraries on jsbin.com, you'll need to include them
+with the <code>&lt;script&gt;</code> tag in the HTML pane, like this:
+<script src="https://gist.github.com/ewust/7957542.js"></script>
+</p>
+
+<p>
+Javascript allows us to do all of the above much more compactly through the
+use of anonymous functions. Here's a cleaner, more "functional" version of the
+simple red-green blinking demo:
+</p>
+
+<script src="https://gist.github.com/ewust/7957372.js"></script>
+<noscript>
+<pre>
+(new Blinken()).run(function(lights) {
+ 
+    // variable that keeps track of if we are red (true) or green
+    // (false)
+    var strand_red = true;
+
+    // Set the strand to full brightness
+    for (i=0; i&lt;100; i++) {
+        lights[i].a = 1;
+    }
+ 
+    // Return our update function
+    return function () {
+ 
+        // Loop over all the lights 
+        for (i=0; i&lt;100; i++) {
+            if (strand_red) {
+                // Set red
+                lights[i].rgb(1, 0, 0);
+            } else {
+                // Set green
+                lights[i].rgb(0, 1, 0);
+            }
+        }
+        strand_red = !strand_red;
+ 
+        // Wait 500 ms until we get called again.
+        return 500;
+    };
+});
+</pre>
+</noscript>
+
+<p>
+Here's another <a
+href="http://jsbin.com/blinken/8/edit#javascript,console,output">example</a>
+of a simple snake program to help inspire additional ideas.</p>
+
+<p>Happy Hacking!</p>
+
+	    </div>
+         </div>
+       </div>
+    </div>
+  </div>
+<!--
+<a href="http://www.reddit.com/r/bbbblinken">Subreddit</a><br/>
+<a href="http://jsbin.com/blinken/8/edit#javascript,console,output">Example</a><br/>
+<a href="http://141.212.108.235/camera.html">Webcam</a><br/>
+<a href="http://blinken.eecs.umich.edu/gallery/">Gallery</a><br/>
+-->
+
+</body>
+</html>
+
