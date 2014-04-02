@@ -29,8 +29,8 @@ def get_bbbblinken_json():
 
 # show url
 def show_url(url):
-    if url.startswith('http://jsbin.com/') and url.endswith('/edit'):
-        return url.replace('/edit', '')
+    if url.startswith('http://jsbin.com/') and '/edit' in url:
+        return url[0:url.index('/edit')]
     elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/')) and not(url.endswith('/show/')):
         return url + '/show/'
     else:
