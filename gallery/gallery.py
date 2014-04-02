@@ -1,7 +1,9 @@
 #!/usr/bin/env python
-from bottle import route, run, template
+from bottle import route, run, template, response
 import json
 import urllib
+import urllib2
+import random
 
 
 def get_bbbblinken_json():
@@ -11,6 +13,7 @@ def get_bbbblinken_json():
         obj = json.loads(buf)
     except:
         print buf.encode('base64')
+        return None
     f.close()
 
     if 'error' in obj:
@@ -44,6 +47,39 @@ def code_url(url):
     else:
         return url
 
+# will call urllib2.urlopen/read 
+def js_code(url):
+    # http://jsbin.com/oWOfadIM/73/edit?html,js,output -> http://jsbin.com/oWOfadIM/73/js
+    if url.startswith('http://jsbin.com/'):
+        if '/show' in url or '/edit' in url:
+            js_url = url[0:url.rindex('/')] + '/js'
+        else:
+            if url.endswith('/'):
+                js_url = url + 'js'
+            else:
+                js_url = url + '/js'
+
+        print 'js_url: ' + js_url
+        resp = urllib2.urlopen(js_url)
+        return resp.read()
+
+    elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/')):
+        if url.endswith('/show'):
+            url = url[0:url.rindex('/show')]
+        js_url = code_url(url) + 'embedded/js/'
+        # This url still has a bunch of crap in it...
+        print 'js_url: ' + js_url
+        resp = urllib2.urlopen(js_url)
+        js_page = resp.read()
+        js_start_tag = '<pre data-language="js" class="js tCont  active">'
+        js_start = js_page.index(js_start_tag)
+        js_end = js_page.index('</pre>', js_start)
+
+        return js_page[js_start+len(js_start_tag):js_end]
+         
+    else:
+        resp = urllib2.urlopen(url)
+        return resp.read()
 
 
 @route('/gallery')
@@ -119,5 +155,28 @@ iframe.reddit {
     return buf + '''</body>
 </html>'''
     #return template('<b>Hello {{name}}</b>!', name=name)
+
+
+@route('/gallery/random')
+@route('/gallery/random/')
+def getrandom():
+    obj = get_bbbblinken_json()
+
+    urls = []
+    for child in obj['data']['children']:
+        c = child['data']
+        if c['is_self']:
+            continue
+        urls.append(show_url(c['url']))
+ 
+    url = random.choice(urls)
+    print url
+
+    response.set_header('Content-Type', 'application/javascript')
+    return js_code(url)
+
+    #return 'This is going to be random'
+
+
 
 run(host='localhost', port=8080)
