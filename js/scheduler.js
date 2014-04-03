@@ -1,14 +1,19 @@
 var crypto = require('crypto'),
     fs = require('fs'),
-    runner = require('./runner.js');
+    runner = require('./runner.js'),
+    http = require('http'),
+    vm = require('vm'),
+    util = require('util');
+
+
 
 var jobs = {};
 var queue = [];
 var stopTime = 0;
 
-exports.makeJob = function(code) {
+exports.makeJob = function(code, url) {
     var token = makeToken();
-    jobs[token] = {code: code, limit: 120, cancel: false, status: {} };
+    jobs[token] = {code: code, url: url, limit: 120, cancel: false, status: {} };
     return token;
 };
 
@@ -27,6 +32,14 @@ exports.cancelJob = function(token) {
     }
     jobs[token].cancel = true;
     jobs[token].status = {value: 0, message: 'Canceled'};
+};
+
+exports.getTimeLeft = function() {
+    return stopTime - Date.now()/1000;
+};
+
+exports.setTimeLeft = function(limit) {
+    stopTime = Date.now()/1000 + limit;
 };
 
 function estimateWait(token) {
@@ -72,12 +85,64 @@ function makeToken() {
 }
 
 function getIdleCode(callback) {
+
+    var options = {
+       host: "blinken.eecs.umich.edu",
+        port: 80,
+        path: "/gallery/random"
+    };
+    return http.get(options, function(res) {
+        res.on('data', function(output) { 
+            //output is (hopefully) json with code, url, and name members
+            // code is (hopefully) some javascript, but it uses the Blinken object
+            // which is undefined here. So we want to mock up a blinken object
+
+            var obj = JSON.parse(output);
+            var code = obj.code;
+            var fakeWindow = {};
+            fakeWindow.runnerWindow = {};
+            fakeWindow.runnerWindow.protect = function(){};
+            fakeWindow.onload = function(){};
+            function blinken() { };
+            blinken.prototype.run = function(lights) {
+                console.log('running');
+                callback({code: lights.toString(), url: obj.url, name: obj.name});
+            }
+            var script, sandbox = {window : fakeWindow, Blinken: blinken};
+            try {
+                console.log('trying to run: ');
+                console.log(code.toString());
+                //script = vm.createScript('main = ' + code.toString());
+                script = vm.createScript(code.toString() + "\nwindow.onload();\n");
+                script.runInNewContext(sandbox);
+            } catch (e) {
+                if (e.name === "SyntaxError") {
+                    console.log('Syntax error: ' + e.stack);
+                    console.log(util.inspect(sandbox));
+                }
+                console.log("Idle error: (falling back to circus) " + e.toString());
+                
+                fs.readFile(__dirname + '/static/idle.js', 'utf8', function(err,data) {
+                        if (err) {
+                            throw new Error(err);
+                        }
+                        callback({code: data, url: 'local', name: 'Circus'});
+                    });
+            }
+        });
+
+        res.on('error', function(e) { console.log("Got error: " + e.message); });
+    }).on('error', function(e) { console.log("Got GET error: " + e.message); });
+
+
+    /*
     return fs.readFile(__dirname + '/static/idle.js', 'utf8', function(err,data) {
         if (err) {
             throw new Error(err);
         }
         callback(data);
     });
+    */
 }
 
 function saveCode(code) {
@@ -102,6 +167,8 @@ function scheduler() {
         saveCode(jobs[token].code);
         return runner.run({ // User program
             code: jobs[token].code,
+            url: jobs[token].url,
+            idle: false,
             limit: jobs[token].limit,
             cancel: function() { return jobs[token].cancel },
             after: function(status, message) {
@@ -114,9 +181,12 @@ function scheduler() {
             }
         });
     }
-    return getIdleCode(function(idleCode){
+    return getIdleCode(function(idleObj){
         return runner.run({ // Idle program
-            code: idleCode,
+            code: idleObj.code,
+            url: idleObj.url,
+            name: idleObj.name,
+            idle: true,
             limit: 60,
             cancel: function() { return queue.length > 0 },
             after: function(status, message) {
