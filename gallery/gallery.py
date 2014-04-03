@@ -10,7 +10,7 @@ import time
 import hashlib
 
 JSON_FILE = '/tmp/bbbblinken.json.last'
-PER_PAGE=10
+PER_PAGE=8
 
 def get_cached_json():
     f = open(JSON_FILE, 'r')
@@ -104,7 +104,7 @@ def js_code(url):
     elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/')):
         if url.endswith('/show'):
             url = url[0:url.rindex('/show')]
-        js_url = code_url(url) + 'embedded/js/'
+        js_url = code_url(url) + '/embedded/js/'
         # This url still has a bunch of crap in it...
         print 'js_url: ' + js_url
         try:
