@@ -249,7 +249,7 @@ function Blinken(target) {
     function publishJob(code) {
         published = true;
         $(send).text('Sending');
-        $.post(apiPath + '/publish', {code: code.toString()}, function(data) {
+        $.post(apiPath + '/publish', {code: code.toString(), url: document.location.toString()}, function(data) {
             $(send).text('Sent');
             token = data;
             setTimeout(checkStatus, 100);
