@@ -10,6 +10,7 @@ import time
 import hashlib
 
 JSON_FILE = '/tmp/bbbblinken.json.last'
+PER_PAGE=10
 
 def get_cached_json():
     f = open(JSON_FILE, 'r')
@@ -131,8 +132,9 @@ def js_code(url):
 
 
 @route('/gallery')
-@route('/gallery/')
-def index():
+@route('/gallery/<page_s>')
+def index(page_s='0'):
+    page = int(page_s)
 
     buf = '''<html>
 <head>
@@ -141,6 +143,10 @@ iframe {
     height: 500px;
     width: 250px;
     border: none;
+}
+
+.clearfix {
+    clear: both;
 }
 
 iframe.reddit {
@@ -176,16 +182,27 @@ iframe.reddit {
 </style>
 </head>
 <body>
-<h1>BBBBlinken</h1>'''
+<h1>BBBBlinken</h1>
+<div class="container">'''
     #return str(obj)
     obj = get_bbbblinken_json()
 
+    idx = -1
+    hit_index = False
+    more_pages = False
+    tmp_buf = ''
     for child in obj['data']['children']:
         c = child['data']
         if c['is_self']:
             continue
         url = show_url(c['url'])
-        buf += '''<div class="blinken">
+        idx += 1
+        if not(idx in range(page*PER_PAGE, (page+1)*PER_PAGE)):
+            if hit_index:
+                more_pages = True
+            continue
+        hit_index = True
+        tmp_buf += '''<div class="blinken">
 <center>
  <div>
    <span>
@@ -199,6 +216,19 @@ iframe.reddit {
  <iframe src="%s"></iframe>
 </center></div>\n''' % \
             (c['url'], c['permalink'], c['title'], c['permalink'], code_url(c['url']), url)
+
+
+    nav_buf = ''
+    if (page!=0):
+        nav_buf += '<a class="prev_link" href="/gallery/%d">&lt;&lt; Previous</a>\n' % (page-1)
+
+    if (more_pages):
+        nav_buf += '<a class="next_link" href="/gallery/%d">Next &gt;&gt;</a>\n' % (page+1)
+    
+    buf += nav_buf + '<br/><br/>'
+    buf += tmp_buf
+    buf += '<div class="clearfix"></div><br/></div><br/>\n' # container
+    buf += nav_buf
 
     return buf + '''</body>
 </html>'''
