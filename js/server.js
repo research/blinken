@@ -54,8 +54,11 @@ function url_normalize(url) {
         return url.substr(0, url.indexOf('/edit'));
     } else if (url.indexOf('http://jsbin.com/')==0 && url.indexOf('/show')==(url.length - '/show'.length)) {
         return url.substr(0, url.indexOf('/show'));
-    } else if (((url.indexOf('http://fiddle.jshell.net/')==0 || url.indexOf('http://jsfiddle.net/')) && url.indexOf('/show/')==-1)) {
+    } else if (((url.indexOf('http://fiddle.jshell.net/')==0 || url.indexOf('http://jsfiddle.net/')) && url.indexOf('/show')==-1)) {
         return url + '/show/';
+    } else if (url.indexOf('http://jsfiddle.net/')==0) {
+        // Ugh hack
+        return url + '/';
     } else {
         return url;
     }

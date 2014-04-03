@@ -59,7 +59,7 @@ def show_url(url):
         return url[0:url.index('/edit')]
     elif url.startswith('http://jsbin.com/') and url.endswith('/show'):
         return url[0:url.rindex('/show')]
-    elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/')) and not(url.endswith('/show/')):
+    elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/')) and not((url.endswith('/show/') or url.endswith('/show'))):
         return url + '/show/'
     else:
         return url
