@@ -4,10 +4,35 @@ import json
 import urllib
 import urllib2
 import random
+import HTMLParser
+import os
+import time
+import hashlib
 
+JSON_FILE = '/tmp/bbbblinken.json.last'
+
+def get_cached_json():
+    f = open(JSON_FILE, 'r')
+    obj = json.loads(f.read())    
+    f.close()
+    return obj
+ 
 
 def get_bbbblinken_json():
-    f = urllib.urlopen("http://reddit.com/r/bbbblinken.json")
+
+    diff = time.time() - os.path.getmtime(JSON_FILE)
+    print '%s seconds since last...' % (str(diff))
+    if (diff < 60):
+        return get_cached_json()
+
+    try:
+        f = urllib2.urlopen("http://www.reddit.com/r/bbbblinken.json", timeout=2.0)
+    except Exception as e:
+        # This is likely a 429 from reddit. Should update the cached file.
+        os.utime(JSON_FILE, None)
+        print e
+        return get_cached_json()
+
     buf = f.read()
     try:
         obj = json.loads(buf)
@@ -19,12 +44,10 @@ def get_bbbblinken_json():
     if 'error' in obj:
         # load from file cache
         print 'Freakin reddit...'
-        f = open('/tmp/bbbblinken.json.last', 'r')
-        obj = json.loads(f.read())    
-        f.close()
+        return get_cached_json()
     else:
         # save to file cache
-        f = open('/tmp/bbbblinken.json.last', 'w')
+        f = open(JSON_FILE, 'w')
         f.write(buf)
         f.close()
 
@@ -34,6 +57,8 @@ def get_bbbblinken_json():
 def show_url(url):
     if url.startswith('http://jsbin.com/') and '/edit' in url:
         return url[0:url.index('/edit')]
+    elif url.startswith('http://jsbin.com/') and url.endswith('/show'):
+        return url[0:url.rindex('/show')]
     elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/')) and not(url.endswith('/show/')):
         return url + '/show/'
     else:
@@ -49,6 +74,14 @@ def code_url(url):
 
 # will call urllib2.urlopen/read 
 def js_code(url):
+
+    cache_fn = hashlib.md5(url).hexdigest()
+    if os.path.isfile(cache_fn):
+        f = open(cache_fn, 'r')
+        buf = f.read()
+        f.close()
+        return buf        
+
     # http://jsbin.com/oWOfadIM/73/edit?html,js,output -> http://jsbin.com/oWOfadIM/73/js
     if url.startswith('http://jsbin.com/'):
         if '/show' in url or '/edit' in url:
@@ -60,8 +93,12 @@ def js_code(url):
                 js_url = url + '/js'
 
         print 'js_url: ' + js_url
-        resp = urllib2.urlopen(js_url)
-        return resp.read()
+        try:
+            resp = urllib2.urlopen(js_url, timeout=2.0)
+        except Exception as e:
+            print e
+            return None
+        buf = resp.read()
 
     elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/')):
         if url.endswith('/show'):
@@ -69,17 +106,28 @@ def js_code(url):
         js_url = code_url(url) + 'embedded/js/'
         # This url still has a bunch of crap in it...
         print 'js_url: ' + js_url
-        resp = urllib2.urlopen(js_url)
+        try:
+            resp = urllib2.urlopen(js_url, timeout=2.0)
+        except Exception as e:
+            print e
+            return None
         js_page = resp.read()
         js_start_tag = '<pre data-language="js" class="js tCont  active">'
         js_start = js_page.index(js_start_tag)
         js_end = js_page.index('</pre>', js_start)
 
-        return js_page[js_start+len(js_start_tag):js_end]
+        h = HTMLParser.HTMLParser()
+        buf = h.unescape(js_page[js_start+len(js_start_tag):js_end])
          
     else:
         resp = urllib2.urlopen(url)
-        return resp.read()
+        buf = resp.read()
+
+    
+    f = open(cache_fn, 'w')
+    f.write(buf)
+    f.close()
+    return buf
 
 
 @route('/gallery')
@@ -160,20 +208,29 @@ iframe.reddit {
 @route('/gallery/random')
 @route('/gallery/random/')
 def getrandom():
+    print 'getrandom req...'
     obj = get_bbbblinken_json()
+    print 'got object'
 
-    urls = []
+    candidates = []
     for child in obj['data']['children']:
         c = child['data']
         if c['is_self']:
             continue
-        urls.append(show_url(c['url']))
+        candidates.append(c)
+        #urls.append(show_url(c['url']))
  
-    url = random.choice(urls)
+    winner = random.choice(candidates)
+    url = show_url(winner['url'])
     print url
 
     response.set_header('Content-Type', 'application/javascript')
-    return js_code(url)
+    
+    output = {}
+    output['code'] = js_code(url)
+    output['url'] = url
+    output['name'] = winner['title']
+    return json.dumps(output)
 
     #return 'This is going to be random'
 
