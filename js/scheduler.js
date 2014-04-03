@@ -84,6 +84,16 @@ function makeToken() {
     return crypto.randomBytes(16).toString('hex');
 }
 
+function runLocalShow(callback) {
+    fs.readFile(__dirname + '/static/idle.js', 'utf8', function(err,data) {
+        if (err) {
+            throw new Error(err);
+        }
+        callback({code: data, url: 'local', name: 'Circus'});
+    });
+}
+ 
+
 function getIdleCode(callback) {
 
     var options = {
@@ -97,8 +107,15 @@ function getIdleCode(callback) {
             // code is (hopefully) some javascript, but it uses the Blinken object
             // which is undefined here. So we want to mock up a blinken object
 
-            var obj = JSON.parse(output);
-            var code = obj.code;
+            var obj;
+            try {
+                obj = JSON.parse(output);
+                var code = obj.code;
+            } catch (e) {
+                console.log("JSON parse error: " + e);
+                runLocalShow(callback);
+                return;
+            }
             var fakeWindow = {};
             fakeWindow.runnerWindow = {};
             fakeWindow.runnerWindow.protect = function(){};
@@ -122,13 +139,8 @@ function getIdleCode(callback) {
                 }
                 console.log("Idle error: (falling back to circus) " + e.toString());
                 
-                fs.readFile(__dirname + '/static/idle.js', 'utf8', function(err,data) {
-                        if (err) {
-                            throw new Error(err);
-                        }
-                        callback({code: data, url: 'local', name: 'Circus'});
-                    });
-            }
+                runLocalShow(callback);
+           }
         });
 
         res.on('error', function(e) { console.log("Got error: " + e.message); });
