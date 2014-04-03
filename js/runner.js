@@ -52,6 +52,12 @@ Bulb.prototype.strandBytes = function(scale) {
     Math.round(limit(this.b)*15)];
 };
 
+var currentParams = {}
+
+exports.getCurrent = function() {
+    return currentParams;
+}
+
 exports.run = function(params) {
     var myId = ++runId;
 
@@ -62,6 +68,10 @@ exports.run = function(params) {
         }
     }
     setTimeout(checkTimeout, params.limit*1000);
+
+    params.myId = myId;
+    params.start = Date.now()/1000;
+    currentParams = params;
 
     function checkCancel() {
         if (runId == myId)
