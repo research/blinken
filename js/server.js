@@ -4,6 +4,7 @@ var express = require('express');
 var path = require('path');
 var fs = require('fs');
 var app = express();
+var runner = require('./runner.js');
 
 app.use(express.urlencoded());
 app.use(express.logger());
@@ -25,7 +26,8 @@ app.get('/client.js', function(req, res) {
 
 app.post('/publish', function(req, res){
     res.header('Access-Control-Allow-Origin', '*');
-    var token = scheduler.makeJob(req.body.code);
+    var token = scheduler.makeJob(req.body.code, req.body.url);
+    console.log('published from: ' + req.body.url);
     scheduler.queueJob(token);
     res.send(token);
 });
@@ -38,6 +40,14 @@ app.get('/status/:token', function(req, res){
     } else {
         res.send(JSON.stringify(status));
     }
+});
+
+app.get('/current', function(req, res){
+    res.header('Access-Control-Allow-Origin', '*');
+    var params = runner.getCurrent();
+    var time_left = (params.start + params.limit) - Date.now()/1000;
+    var current_job = {is_idle: params.idle, name: params.name, url: params.url, time_left: Math.round(time_left*1000)/1000};
+    res.send(JSON.stringify(current_job));
 });
 
 app.all('/cancel/:token', function(req, res){
