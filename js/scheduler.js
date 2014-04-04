@@ -11,9 +11,9 @@ var jobs = {};
 var queue = [];
 var stopTime = 0;
 
-exports.makeJob = function(code, url) {
+exports.makeJob = function(code, url, title, author) {
     var token = makeToken();
-    jobs[token] = {code: code, url: url, limit: 120, cancel: false, status: {} };
+    jobs[token] = {code: code, url: url, title: title, author: author, limit: 120, cancel: false, status: {} };
     return token;
 };
 
@@ -181,6 +181,8 @@ function scheduler() {
             code: jobs[token].code,
             url: jobs[token].url,
             idle: false,
+            title: jobs[token].title,
+            author: jobs[token].author,
             limit: jobs[token].limit,
             cancel: function() { return jobs[token].cancel },
             after: function(status, message) {

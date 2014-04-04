@@ -1,10 +1,17 @@
 //
 // Blinken simulator (jhalderm 2013-12)
 //
-function Blinken(target) {
-    if (typeof target === "undefined") {
-        target = $('body');
+function Blinken(obj) { // {title, author, target}
+    if (typeof obj === "undefined") {
+        obj = {};
     }
+
+    if (typeof obj.target === "undefined") {
+        obj.target = $('body');
+    }
+
+    var title = obj.title;
+    var author = obj.author;
 
     // Create and style our environment
     var view = document.createElement('div'),
@@ -15,7 +22,7 @@ function Blinken(target) {
     view.appendChild(scale);
     scale.appendChild(world);
     world.appendChild(floor);
-    target.append(view);
+    obj.target.append(view);
     view.appendChild(send);
     $(view).css({
         position: 'absolute',
@@ -249,7 +256,7 @@ function Blinken(target) {
     function publishJob(code) {
         published = true;
         $(send).text('Sending');
-        $.post(apiPath + '/publish', {code: code.toString(), url: document.location.toString()}, function(data) {
+        $.post(apiPath + '/publish', {code: code.toString(), url: document.location.toString(), title: title, author: author}, function(data) {
             $(send).text('Sent');
             token = data;
             setTimeout(checkStatus, 100);

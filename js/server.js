@@ -26,7 +26,7 @@ app.get('/client.js', function(req, res) {
 
 app.post('/publish', function(req, res){
     res.header('Access-Control-Allow-Origin', '*');
-    var token = scheduler.makeJob(req.body.code, req.body.url);
+    var token = scheduler.makeJob(req.body.code, req.body.url, req.body.title, req.body.author);
     console.log('published from: ' + req.body.url);
     scheduler.queueJob(token);
     res.send(token);
@@ -126,7 +126,9 @@ app.get('/current', function(req, res){
         // Won't get it this time around, but maybe next time?
         name_from_url(params);
     }
-    var current_job = {is_idle: params.idle, name: params.name, url: params.url, time_left: Math.round(time_left*1000)/1000};
+    var current_job = {is_idle: params.idle, name: params.name, url: params.url,
+                        time_left: Math.round(time_left*1000)/1000,
+                        title: params.title, author: params.author};
     res.send(JSON.stringify(current_job));
 });
 
