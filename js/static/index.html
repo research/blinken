@@ -15,7 +15,7 @@
        <ul class="nav pull-right">
 	  <li><a href="/camera">Webcam</a></li>
 	  <li><a href="/gallery">Gallery</a></li>
-	  <li><a href="http://jsbin.com/blinken/8/edit#javascript,console,output">Example</a></li>
+	  <li><a href="http://jsbin.com/rihot/2/edit#javascript,console,output">Example</a></li>
 	  <li><a href="http://www.reddit.com/r/bbbblinken">Subreddit</a></li>
        </ul>
     </div>
@@ -91,7 +91,7 @@ the world to see when you're done.
 <p class="front">
 <span class="label label-info">TLDR</span>
 With the click of a button, you can run any of the submitted programs from the <a href="/gallery">gallery</a>
-and view them via the <a href="http://141.212.108.235/camera.html">webcam</a>.
+and view them via the <a href="/camera">webcam</a>.
 </p>
 
 <p class="front">
@@ -113,11 +113,12 @@ of the lights.
 To use our simulator and control the lights, you'll need to include our <a
 href="http://blinken.eecs.umich.edu/client.js">client.js</a> library, which
 exports a Blinken object. You can instantiate it using the <code>new</code>
-constructor:
+constructor, giving it an object that contains a title and who wrote this show:
 </p>
 
 <div class="indent" style="width:400px">
-<pre><b>var b = new Blinken();</b></pre>
+<pre><b>var b = new Blinken({title: "My Title",
+                     author: "My Name"});</b></pre>
 </div>
 
 <p>
@@ -285,7 +286,7 @@ simple red-green blinking demo:
 
 <p>
 Here's another <a
-href="http://jsbin.com/blinken/8/edit#javascript,console,output">example</a>
+href="http://jsbin.com/rihot/2/edit#javascript,console,output">example</a>
 of a simple snake program to help inspire additional ideas.</p>
 
 <p>Happy Hacking!</p>
