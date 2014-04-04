@@ -120,10 +120,15 @@ function getIdleCode(callback) {
             fakeWindow.runnerWindow = {};
             fakeWindow.runnerWindow.protect = function(){};
             fakeWindow.onload = function(){};
-            function blinken() { };
+            var blinken_obj = {};
+            function blinken(obj) { 
+                if (typeof obj !== "undefined") {
+                    blinken_obj = obj;
+                }
+            }
             blinken.prototype.run = function(lights) {
                 console.log('running');
-                callback({code: lights.toString(), url: obj.url, name: obj.name});
+                callback({code: lights.toString(), url: obj.url, name: obj.name, title: blinken_obj.title, author: blinken_obj.author});
             }
             var script, sandbox = {window : fakeWindow, Blinken: blinken};
             try {
@@ -200,6 +205,8 @@ function scheduler() {
             code: idleObj.code,
             url: idleObj.url,
             name: idleObj.name,
+            title: idleObj.title,
+            author: idleObj.author,
             idle: true,
             limit: 60,
             cancel: function() { return queue.length > 0 },
