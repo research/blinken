@@ -134,6 +134,10 @@ function getIdleCode(callback) {
             try {
                 console.log('trying to run: ');
                 console.log(code.toString());
+                if (code.toString() == '') {
+                    runLocalShow(callback);
+                    return;
+                }
                 //script = vm.createScript('main = ' + code.toString());
                 script = vm.createScript(code.toString() + "\nwindow.onload();\n");
                 script.runInNewContext(sandbox);
