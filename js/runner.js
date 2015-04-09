@@ -38,7 +38,7 @@ function StrandControl(host, port) {
         });
     };
 }
-var strand = new StrandControl('141.212.108.241', 1337);
+var strand = new StrandControl('141.212.108.242', 1337);
 
 Bulb.prototype.strandBytes = function(scale) {
     function limit(x) {
