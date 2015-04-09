@@ -56,10 +56,15 @@ def get_bbbblinken_json():
 
 # show url
 def show_url(url):
-    if url.startswith('http://jsbin.com/') and '/edit' in url:
-        return url[0:url.index('/edit')]
-    elif url.startswith('http://jsbin.com/') and url.endswith('/show'):
-        return url[0:url.rindex('/show')]
+    if url.startswith('http://jsbin.com/'):
+        if '/edit' in url:
+            url = url[0:url.index('/edit')]
+        if url.endswith('/show'):
+            url = url[0:url.rindex('/show')]
+
+        if not(url.endswith('/')):
+            url += '/'
+        return url + 'embed?output'
     elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/')) and not((url.endswith('/show/') or url.endswith('/show'))):
         return url + '/show/'
     else:
@@ -85,7 +90,7 @@ def js_code(url):
 
     # http://jsbin.com/oWOfadIM/73/edit?html,js,output -> http://jsbin.com/oWOfadIM/73/js
     if url.startswith('http://jsbin.com/'):
-        if '/show' in url or '/edit' in url:
+        if '/show' in url or '/edit' in url or '/embed' in url:
             js_url = url[0:url.rindex('/')] + '/js'
         else:
             if url.endswith('/'):
@@ -95,7 +100,10 @@ def js_code(url):
 
         print 'js_url: ' + js_url
         try:
-            resp = urllib2.urlopen(js_url, timeout=2.0)
+            #resp = urllib2.urlopen(js_url, timeout=2.0)
+            headers = { 'User-Agent' : 'Mozilla/5.0' }
+            req = urllib2.Request(js_url, None, headers)
+            resp = urllib2.urlopen(req)
         except Exception as e:
             print e
             return None
@@ -238,6 +246,7 @@ iframe.reddit {
 @route('/gallery/random')
 @route('/gallery/random/')
 def getrandom():
+    print 'rand??'
     print 'getrandom req...'
     obj = get_bbbblinken_json()
     print 'got object'
