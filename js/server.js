@@ -1,13 +1,15 @@
 var util = require('util');
 var scheduler = require('./scheduler.js');
 var express = require('express');
+var bodyParser = require('body-parser');
+var logger = require('morgan');
 var path = require('path');
 var fs = require('fs');
 var app = express();
 var runner = require('./runner.js');
 
-app.use(express.urlencoded());
-app.use(express.logger());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(logger("default"));
 
 app.get('/', function(req, res) {
     res.sendfile('static/index.html');
