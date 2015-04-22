@@ -72,7 +72,7 @@ def show_url(url):
 
 def code_url(url):
     if url.startswith('http://jsbin.com/') and not(url.endswith('/edit')):
-        return url + '/edit'
+        return url.rstrip('/') + '/edit'
     elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/')) and (url.endswith('/show') or url.endswith('/show/')):
         return url.replace('/show', '')
     else:
