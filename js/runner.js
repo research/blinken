@@ -87,7 +87,8 @@ exports.run = function(params) {
     var fakeWindow = {};
     fakeWindow.runnerWindow = {};
     fakeWindow.runnerWindow.protect = function(){};
-    var script, sandbox = {window : fakeWindow, Bulb : Bulb};
+    var WS = require('ws');
+    var script, sandbox = {window : fakeWindow, Bulb : Bulb, WebSocket: WS};
     try {
         script = vm.createScript('main = ' + params.code);
         script.runInNewContext(sandbox);
