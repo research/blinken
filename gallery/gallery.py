@@ -72,7 +72,7 @@ def show_url(url):
 
 def code_url(url):
     if url.startswith('http://jsbin.com/') and not(url.endswith('/edit')):
-        return url + '/edit'
+        return url.rstrip('/') + '/edit'
     elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/')) and (url.endswith('/show') or url.endswith('/show/')):
         return url.replace('/show', '')
     else:
@@ -151,6 +151,8 @@ iframe {
     height: 500px;
     width: 250px;
     border: none;
+    position: relative;
+    top: -34px;
 }
 
 .clearfix {
@@ -158,8 +160,10 @@ iframe {
 }
 
 iframe.reddit {
-    height: 20px;
+    height: 30px;
+    width: 120px;
     border: none;
+    top: 0px;
 }
 
 .blinken {
@@ -221,7 +225,9 @@ iframe.reddit {
      (<a href="http://www.reddit.com%s">comments</a>) (<a href="%s">code</a>)
    </span>
  </div>
+ <div style="width: 250px; height: 500px; overflow: hidden;">
  <iframe src="%s"></iframe>
+ </div>
 </center></div>\n''' % \
             (c['url'], c['permalink'], c['title'], c['permalink'], code_url(c['url']), url)
 
@@ -272,7 +278,6 @@ def getrandom():
     return json.dumps(output)
 
     #return 'This is going to be random'
-
 
 
 run(host='localhost', port=8080)
