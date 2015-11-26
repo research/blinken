@@ -56,6 +56,10 @@ def get_bbbblinken_json():
 
 # show url
 def show_url(url):
+
+    if url.startswith('http://output.jsbin.com'):
+        url = url.replace('//output.', '//')
+
     if url.startswith('http://jsbin.com/'):
         if '/edit' in url:
             url = url[0:url.index('/edit')]
@@ -71,6 +75,10 @@ def show_url(url):
         return url
 
 def code_url(url):
+
+    if url.startswith('http://output.jsbin.com'):
+        url = url.replace('//output.', '//')
+
     if url.startswith('http://jsbin.com/') and not(url.endswith('/edit')):
         return url.rstrip('/') + '/edit'
     elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/')) and (url.endswith('/show') or url.endswith('/show/')):
@@ -87,6 +95,9 @@ def js_code(url):
         buf = f.read()
         f.close()
         return buf        
+
+    if url.startswith('http://output.jsbin.com'):
+        url = url.replace('//output.', '//')
 
     # http://jsbin.com/oWOfadIM/73/edit?html,js,output -> http://jsbin.com/oWOfadIM/73/js
     if url.startswith('http://jsbin.com/'):
