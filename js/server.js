@@ -144,5 +144,13 @@ app.all('/cancel/:token', function(req, res){
     }
 });
 
+
+// This allows people to connect in on the /stream websocket, and get a continuous stream of frames
+// of the current running show (~5KB/s per stream)
+app.get('/stream', function(req, res) {
+    res.header('Access-Control-Allow-Origin', '*');
+    runner.addStream(res);
+});
+
 app.listen(3000, 'localhost');
 console.log('Listening');

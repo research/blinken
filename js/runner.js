@@ -25,17 +25,21 @@ function StrandControl(host, port) {
     this.sock = dgram.createSocket('udp4');
     this.host = host;
     this.port = port;
+    this.streams = [];
     this.update = function(lights) {
-    payload = Array();
-    var scale = getBrightnessScale(lights);
-    for (var i=0; i < lights.length; i++) {
-        payload = payload.concat(lights[lights.length-1-i].strandBytes(scale));
-    }
-    var packet = Buffer(payload);
-    this.sock.send(packet, 0, packet.length, port, host,
-	function(err, b) {
-	    if (err) { console.log('Network error: ' + err); }
-        });
+        payload = Array();
+        var scale = getBrightnessScale(lights);
+        for (var i=0; i < lights.length; i++) {
+           payload = payload.concat(lights[lights.length-1-i].strandBytes(scale));
+        }
+        var packet = Buffer(payload);
+        this.sock.send(packet, 0, packet.length, port, host,
+	                    function(err, b) {
+	                        if (err) { console.log('Network error: ' + err); }
+                        });
+        this.streams.foreach(function(stream) {
+            stream.write(payload);
+        );
     };
 }
 var strand = new StrandControl('141.212.108.242', 1337);
@@ -53,6 +57,11 @@ Bulb.prototype.strandBytes = function(scale) {
 };
 
 var currentParams = {}
+
+// Takes the websocket (and assumes a .write/.send function)
+exports.addStream = function(res) {
+    strand.streams.push(res);
+}
 
 exports.getCurrent = function() {
     return currentParams;
