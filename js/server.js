@@ -5,11 +5,26 @@ var bodyParser = require('body-parser');
 var logger = require('morgan');
 var path = require('path');
 var fs = require('fs');
-var app = express();
 var runner = require('./runner.js');
+
+
+var ews = require('express-ws')
+var expressWs = ews(express());
+var app = expressWs.app;
+
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(logger("default"));
+
+// This allows people to connect in on the /stream websocket, and get a continuous stream of frames
+// of the current running show (~5KB/s per stream)
+app.ws('/ws/stream', function(ws, req) {
+  ws.on('message', function(msg) {
+    console.log('ws message:', msg);
+  });
+  runner.addStream(ws);
+  console.log('stream websocket', req._remoteAddress);
+});
 
 app.get('/', function(req, res) {
     res.sendfile('static/index.html');
@@ -144,13 +159,6 @@ app.all('/cancel/:token', function(req, res){
     }
 });
 
-
-// This allows people to connect in on the /stream websocket, and get a continuous stream of frames
-// of the current running show (~5KB/s per stream)
-app.get('/stream', function(req, res) {
-    res.header('Access-Control-Allow-Origin', '*');
-    runner.addStream(res);
-});
 
 app.listen(3000, 'localhost');
 console.log('Listening');
