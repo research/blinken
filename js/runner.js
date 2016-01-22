@@ -102,6 +102,7 @@ exports.run = function(params) {
     var fakeWindow = {};
     fakeWindow.runnerWindow = {};
     fakeWindow.runnerWindow.protect = function(){};
+    fakeWindow.runnerWindow.protect.protect = function(){ return false };
     var WS = require('ws');
     var script, sandbox = {window : fakeWindow, Bulb : Bulb, WebSocket: WS};
     try {
