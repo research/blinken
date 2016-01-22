@@ -37,9 +37,15 @@ function StrandControl(host, port) {
 	                    function(err, b) {
 	                        if (err) { console.log('Network error: ' + err); }
                         });
-        this.streams.foreach(function(stream) {
-            stream.write(payload);
-        );
+        for (var i=0; i<this.streams.length; i++) {
+            try {
+                this.streams[i].send(packet);
+            } catch (ex) {
+                // remove this stream
+                this.streams.splice(i, 1);
+                i--;
+            }
+        }
     };
 }
 var strand = new StrandControl('141.212.108.242', 1337);
