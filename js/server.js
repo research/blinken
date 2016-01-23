@@ -41,6 +41,10 @@ app.get('/client.js', function(req, res) {
     });
 });
 
+app.get('/watch-live.html', function(req, res) {
+    res.sendfile('static/watch-live.html');
+});
+
 app.post('/publish', function(req, res){
     res.header('Access-Control-Allow-Origin', '*');
     var token = scheduler.makeJob(req.body.code, req.body.url, req.body.title, req.body.author);
