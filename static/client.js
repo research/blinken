@@ -1,6 +1,13 @@
 //
 // Blinken simulator (jhalderm 2013-12)
 //
+
+// Requires:
+//
+//  <script src="//code.jquery.com/jquery-latest.js"></script>
+//  <script src="//blinken.org/bulb.js"></script>  
+//
+
 function Blinken(obj) { // {title, author, target}
     if (typeof obj === "undefined") {
         obj = {};
@@ -238,7 +245,7 @@ function Blinken(obj) { // {title, author, target}
     // Publishing
     var published = false;
     var token;
-    var apiPath = 'http://blinken.eecs.umich.edu';
+    var apiPath = 'https://blinken.org/api/0';
     function checkStatus() {
         $.get(apiPath + '/status/' + token, function(data) {
             if (data.value > 0) {
@@ -287,12 +294,4 @@ function Blinken(obj) { // {title, author, target}
     // Exported interface:
     this.run = execStart;
     this.stop = execStop;
-}
-
-// Make sure we have jquery...
-if (!window.jQuery) {
-    var script = document.createElement("script");
-    script.src = '//ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js';
-    script.type = 'text/javascript';
-    document.getElementsByTagName("head")[0].appendChild(script);
 }

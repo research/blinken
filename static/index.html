@@ -1,21 +1,18 @@
-
-<html>
+<html lang="en">
 <head> 
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap-responsive.min.css" rel="stylesheet"/>
   <link href="css/local.css" rel="stylesheet"/>
 </head>
 <body style="background-color: #f5f5f5">
-  <script src="js/jquery.min.js"></script> 
-  <script src="js/bootstrap.min.js"></script> 
-
   <div class="navbar navbar-static-top navbar-inverse">
     <div class="navbar-inner">
     <a class="brand" href="/">BBB Blinken Bulbs</a>
        <ul class="nav pull-right">
 	  <li><a href="/camera">Webcam</a></li>
 	  <li><a href="/gallery">Gallery</a></li>
-	  <li><a href="http://jsbin.com/rihot/2/edit#javascript,console,output">Example</a></li>
-	  <li><a href="http://www.reddit.com/r/bbbblinken">Subreddit</a></li>
+	  <li><a href="https://jsbin.com/rihot/2/edit#javascript,console,output">Example</a></li>
+	  <li><a href="https://www.reddit.com/r/bbbblinken">Subreddit</a></li>
        </ul>
     </div>
   </div>
@@ -27,10 +24,8 @@
 	    <h2>BBB Blinken Bulbs</h2>
 
 
-<p class="front">
-<!--<img style="float: right; width: 300px; margin-left: 20px;" src="http://hobocomp.com/drop/blinkenlights.jpg"/>-->
-<!--<iframe src="http://141.212.108.235/camera.html" style="height: 640px; width: 360px; zoom: .75; float: right; border: none; overflow: hidden;" scrolling="no"></iframe>-->
-    <div id="video-jwplayer_wrapper" style="display: inline; float: right; width: 270px; height: 480px; margin-left: 20px;">
+<!--<p class="front">
+   <div id="video-jwplayer_wrapper" style="display: inline; float: right; width: 270px; height: 480px; margin-left: 20px;">
       <object type="application/x-shockwave-flash" data="http://141.212.108.230/jwplayer/jwplayer.flash.swf" width="100%" height="100%" bgcolor="#000000" id="video-jwplayer" name="video-jwplayer" tabindex="0">
         <param name="allowfullscreen" value="true">
         <param name="allowscriptaccess" value="always">
@@ -78,7 +73,7 @@
       }
     });
     </script>
-</p>
+</p>-->
 <p class="front">
 Hello! Did you know that the lights in the BBB Building are programmable?
 This year, we are providing a new API for the lights to allow people to program them via Javascript.
@@ -122,7 +117,7 @@ constructor, giving it an object that contains a title and who wrote this show:
 
 <p>
 This object has a <code>run()</code> method, which takes as an argument an
-<a href="http://en.wikipedia.org/wiki/Anonymous_function">anonymous
+<a href="https://en.wikipedia.org/wiki/Anonymous_function">anonymous
 function</a> that is called once to <b>initialize</b> the light strand.
 
 This function is expected to return another anonymous function that is
@@ -132,7 +127,7 @@ update function is called again. Both the initializer and update functions are
 given a <code>lights</code> object as an argument, which represents the
 current state of the light strand. There are 100 lights in our strand (indexed
 0-99), and each light can be assigned individual <a
-href="http://en.wikipedia.org/wiki/RGB_color_model">RGB</a> and brightness
+href="https://en.wikipedia.org/wiki/RGB_color_model">RGB</a> and brightness
 values. These values are expected as floats between 0 and 1.
 </p>
 
@@ -205,14 +200,14 @@ b.run(initializer);
 
 <h3>Result</h3>
 <p>That's it! As long as we include the <a
-href="http://blinken.eecs.umich.edu/client.js">client.js</a> and <a
-href="http://code.jquery.com/jquery-latest.js">jquery</a> libraries
+href="/client.js">client.js</a> and <a
+href="https://code.jquery.com/jquery-latest.js">jquery</a> libraries
 on the same page as the above javascript, we'll see something like this when run in
 a browser (feel free to click and drag or use the scroll wheel to zoom in and
 out):
 
 <div style="height: 300px; width: 200px; overflow: hidden; margin: auto;">
-<iframe style="border 1px solid #ccc; margin: auto; display: block; position: relative; top: -35px;" height="300px" width="200px" src="http://jsbin.com/efELeHo/1/embed?output"></iframe>
+<iframe style="border 1px solid #ccc; margin: auto; display: block; position: relative; top: -35px;" height="300px" width="200px" src="https://jsbin.com/efELeHo/1/embed?output"></iframe>
 </div>
 
 <p>When we're satisfied with our simulation, simply click the <code>Run on
@@ -222,7 +217,7 @@ queued behind someone if another program is currently running, but the button
 will change to tell you the current status of your program.</p>
 
 <p>If you're happy with how it looks on the stairs, feel free to submit it to
-the <a href="http://www.reddit.com/r/bbbblinken">BBBBlinken Subreddit</a> for
+the <a href="https://www.reddit.com/r/bbbblinken">BBBBlinken Subreddit</a> for
 all to see, and pick your favorites from the list of already submitted
 blinkens.</p>
 
@@ -230,9 +225,9 @@ blinkens.</p>
 
 <p>You can use any javascript environment you want, including running it in
 your browser locally, but it's easiest to share your code and simulation with
-others (and the <a href="http://www.reddit.com/r/bbbblinken">subreddit</a>) if
+others (and the <a href="https://www.reddit.com/r/bbbblinken">subreddit</a>) if
 you use a Javascript pastebin-like site. We recommend <a
-href="http://jsbin.com/">jsbin.com</a>, since it allows you to see the console
+href="https://jsbin.com/">jsbin.com</a>, since it allows you to see the console
 as one of the panels. The console can be helpful for finding errors in your
 program. 
 </p>
@@ -287,7 +282,7 @@ simple red-green blinking demo:
 
 <p>
 Here's another <a
-href="http://jsbin.com/rihot/2/edit#javascript,console,output">example</a>
+href="https://jsbin.com/rihot/2/edit#javascript,console,output">example</a>
 of a simple snake program to help inspire additional ideas.</p>
 
 <p>Happy Hacking!</p>
@@ -297,13 +292,8 @@ of a simple snake program to help inspire additional ideas.</p>
        </div>
     </div>
   </div>
-<!--
-<a href="http://www.reddit.com/r/bbbblinken">Subreddit</a><br/>
-<a href="http://jsbin.com/blinken/8/edit#javascript,console,output">Example</a><br/>
-<a href="http://141.212.108.235/camera.html">Webcam</a><br/>
-<a href="http://blinken.eecs.umich.edu/gallery/">Gallery</a><br/>
--->
-
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
 </body>
 </html>
 
