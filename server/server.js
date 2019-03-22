@@ -163,6 +163,7 @@ app.all('/cancel/:token', function(req, res){
     }
 });
 
-
-app.listen(3000, 'localhost');
-console.log('Listening');
+host = 'localhost'
+port = 3000
+app.listen(port, host);
+console.log('Listening on ' + host + ":" + port);
