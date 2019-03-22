@@ -32,7 +32,7 @@ function StrandControl(host, port) {
         for (var i=0; i < lights.length; i++) {
            payload = payload.concat(lights[lights.length-1-i].strandBytes(scale));
         }
-        var packet = Buffer(payload);
+        var packet = Buffer.from(payload);
         this.sock.send(packet, 0, packet.length, port, host,
 	                    function(err, b) {
 	                        if (err) { console.log('Network error: ' + err); }
