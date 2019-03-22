@@ -1,7 +1,7 @@
 <html lang="en">
 <head> 
-  <link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap-responsive.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap-responsive.min.css" rel="stylesheet"/>
   <link href="css/local.css" rel="stylesheet"/>
 </head>
 <body style="background-color: #f5f5f5">
@@ -11,7 +11,7 @@
        <ul class="nav pull-right">
 	  <li><a href="/camera">Webcam</a></li>
 	  <li><a href="/gallery">Gallery</a></li>
-	  <li><a href="https://jsbin.com/rihot/2/edit#javascript,console,output">Example</a></li>
+	  <li><a href="https://jsbin.com/libimax/2/edit#javascript,console,output">Example</a></li>
 	  <li><a href="https://www.reddit.com/r/bbbblinken">Subreddit</a></li>
        </ul>
     </div>
@@ -90,7 +90,7 @@ and view them via the <a href="/camera">webcam</a>.
 
 <p class="front">
 <span class="label label-info">Programmers</span>
-Submit your cool programs to the <a href="http://www.reddit.com/r/bbbblinken">subreddit</a> and see them displayed in the gallery!
+Submit your cool programs to the <a href="https://www.reddit.com/r/bbbblinken">subreddit</a> and see them displayed in the gallery!
 </p>
 
 <!--
@@ -105,8 +105,8 @@ of the lights.
 <h3>Using the API</h3>
 <p>
 To use our simulator and control the lights, you'll need to include our <a
-href="http://blinken.eecs.umich.edu/client.js">client.js</a> library, which
-exports a Blinken object. You can instantiate it using the <code>new</code>
+href="/client.js">client.js</a> and <a href="/bulb.js">bulb.js</a> libraries, which
+export Blinken and Bulb objects. You can instantiate it using the <code>new</code>
 constructor, giving it an object that contains a title and who wrote this show:
 </p>
 
@@ -200,7 +200,7 @@ b.run(initializer);
 
 <h3>Result</h3>
 <p>That's it! As long as we include the <a
-href="/client.js">client.js</a> and <a
+href="/client.js">client.js</a>, <a href="/bulb.js">bulb.js</a>, and <a
 href="https://code.jquery.com/jquery-latest.js">jquery</a> libraries
 on the same page as the above javascript, we'll see something like this when run in
 a browser (feel free to click and drag or use the scroll wheel to zoom in and
@@ -212,7 +212,7 @@ out):
 
 <p>When we're satisfied with our simulation, simply click the <code>Run on
 Stairs</code> button on the simulation page, and then <a
-href="http://141.212.108.230/camera.html">watch it go!</a> Your code may be
+href="/camera">watch it go!</a> Your code may be
 queued behind someone if another program is currently running, but the button
 will change to tell you the current status of your program.</p>
 
@@ -235,7 +235,7 @@ program.
 <p>
 To include the javascript libraries on jsbin.com, you'll need to include them
 with the <code>&lt;script&gt;</code> tag in the HTML pane, like this:
-<script src="https://gist.github.com/ewust/7957542.js"></script>
+<script src="https://gist.github.com/jhalderm/4079612b616e0f225460468da8583577.js"></script>
 </p>
 
 <p>
@@ -282,7 +282,7 @@ simple red-green blinking demo:
 
 <p>
 Here's another <a
-href="https://jsbin.com/rihot/2/edit#javascript,console,output">example</a>
+href="https://jsbin.com/libimax/2/edit#javascript,console,output">example</a>
 of a simple snake program to help inspire additional ideas.</p>
 
 <p>Happy Hacking!</p>
@@ -292,8 +292,8 @@ of a simple snake program to help inspire additional ideas.</p>
        </div>
     </div>
   </div>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
 </body>
 </html>
 
