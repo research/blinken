@@ -1,74 +1,62 @@
-<html>
+<html lang="en">
 <head> 
-  <link href="/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="/css/bootstrap-responsive.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap-responsive.min.css" rel="stylesheet"/>
   <link href="/css/local.css" rel="stylesheet"/>
-	<script src="js/socket.io-0.8.7.js"></script>
-	<script src="js/jquery-1.10.2.min.js"></script>
-	<script src="js/jquery-ui-1.10.3.custom.min.js"></script>
-	<script src="js/jsIP.js"></script>
-	<script src="js/flot/jquery.flot-0.8.1.js"></script>
-	<script src="js/flot/jquery.flot.time-0.8.1.js"></script>
-	<script src="js/underscore.js"></script>
-	<script src="js/jquery.grapher.js"></script>
-	<title>Blinken Bulbs Status</title>
+  <title>Blinken Bulbs Status</title>
 
-	<style type="text/css">
-		body {
-			margin: 0;
-			padding: 0;
-			background-color: #F5F5F5;
-		}
-		#body {
-			text-align: center;
-		}
-		.container {
-			width: 1080;
-			height: 700;
-			border-style: solid;
-			border-radius: 15px;
-			border-color: #DADADA;
-			border-width: 1px;
-			background-color: #FFFFFF;
-			padding: 10px 10px 10px 10px;
-			margin: 20px auto 20px auto;
-		}
-		.webcam_container {
-			width: 360px;/*252px;*/
-			height: 640px;/*378px;*/
-			/*position: relative;*/
-            		display: block;
-            		margin-right: 5%;
-			margin-top: 25px;
-			z-index: 1;
-		}
-        .webcam_container h2 {
-            text-align: center;
-        }
-	</style>
+  <style type="text/css">
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #F5F5F5;
+    }
+    #body {
+      text-align: center;
+    }
+    .container {
+      width: 1080;
+      height: 700;
+      border-style: solid;
+      border-radius: 15px;
+      border-color: #DADADA;
+      border-width: 1px;
+      background-color: #FFFFFF;
+      padding: 10px 10px 10px 10px;
+      margin: 20px auto 20px auto;
+    }
+    .webcam_container {
+      width: 360px;/*252px;*/
+      height: 640px;/*378px;*/
+      /*position: relative;*/
+      display: block;
+      margin-right: 5%;
+      margin-top: 25px;
+      z-index: 1;
+    }
+    .webcam_container h2 {
+      text-align: center;
+    }
+  </style>
 </head>
 
-
 <body style="background-color: #f5f5f5">
-  <script type="text/JavaScript" src="/js/jquery.min.js"></script>
-  <script type="text/JavaScript" src="/js/bootstrap.min.js"></script>
-
   <div class="navbar navbar-static-top navbar-inverse">
     <div class="navbar-inner">
     <a class="brand" href="/">BBB Blinken Bulbs</a>
        <ul class="nav pull-right">
-          <li><a href="/camera/">Status</a></li>
+          <li><a href="/camera">Status</a></li>
           <li><a href="/gallery">Gallery</a></li>
-          <li><a href="http://jsbin.com/blinken/8/edit#javascript,console,output">Example</a></li>
-          <li><a href="http://www.reddit.com/r/bbbblinken">Subreddit</a></li>
+	  <li><a href="https://jsbin.com/libimax/2/edit#javascript,console,output">Example</a></li>
+	  <li><a href="https://www.reddit.com/r/bbbblinken">Subreddit</a></li>
        </ul>
     </div>
   </div>
 
-<script type="text/javascript">
+<script>
 function update_title()
 {
-    $.get("http://blinken.eecs.umich.edu/current", function(data) {
+    $.get("/api/0/current", function(data) {
         console.log('got it: ' + data);
         var title = data.title;
         if (typeof title === 'undefined') {
@@ -98,64 +86,9 @@ update_title();
 			<div id="webcam_container" class="webcam_container pull-right"> <!-- style="float: right; margin-right: 20%"> -->
 				<iframe src="http://172.99.65.105:32768" width="100%" height="100%" style="border:0;" scrolling="no"></iframe>
 			</div>
-<!--
-			<div id="webcam_container" class="webcam_container">
-
-				<p class="front">
-				<!--<img style="float: right; width: 300px; margin-left: 20px;" src="http://hobocomp.com/drop/blinkenlights.jpg"/>-->
-				<!--<iframe src="http://141.212.108.235/camera.html" style="height: 640px; width: 360px; zoom: .75; float: right; border: none; overflow: hidden;" scrolling="no"></iframe>-->
-                               <!--
-				    <div id="video-jwplayer_wrapper" style="display: inline; float: left; width: 360px; height: 640px; margin-left: 20px;">
-				      <object type="application/x-shockwave-flash" data="http://141.212.108.230/jwplayer/jwplayer.flash.swf" width="100%" height="100%" bgcolor="#000000" id="video-jwplayer" name="video-jwplayer" tabindex="0">
-				        <param name="allowfullscreen" value="true">
-				        <param name="allowscriptaccess" value="always">
-				        <param name="seamlesstabbing" value="true">
-				        <param name="wmode" value="opaque">
-					<param name="logo" value="false">
-				      </object>
-				      <div id="video-jwplayer_aspect" style="display: none;"></div>
-				      <div id="video-jwplayer_jwpsrv" style="position: absolute; top: 0px; z-index: 10;"></div>
-				    </div>
-
-				    <script src="/js/jwplayer.js"></script>
-
-				    <script type="text/javascript">
-				    jwplayer('video-jwplayer').setup({
-				      flashplayer:"http://141.212.108.230/jwplayer/jwplayer.flash.swf"
-				      , file:"rtmp://141.212.108.230/flvplayback/flv:myStream.flv"
-				      , autoStart: true
-				      , rtmp:{
-				        bufferlength:0.1
-				      }
-				      , deliveryType: "streaming"
-				      , width: 370
-				      , height: 650
-				      , logo: {
-						position: 'left'
-					}
-				      , player: {
-				        modes: {
-				          linear: {
-				            controls:{
-				              stream:{
-				                manage:false
-				                , enabled: false
-				              }
-				            }
-				          }
-				        }
-				      }
-				      , shows: {
-				        streamTimer: {
-				          enabled: true
-				          , tickRate: 100
-				        }
-				      }
-				    });
-				    </script>
-				</p>
-			</div> -->
 	</div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
 </body>
 </html>
-
