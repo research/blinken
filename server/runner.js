@@ -1,7 +1,7 @@
 var vm = require('vm'),
     util = require('util'),
     dgram = require('dgram'),
-    bulb = require('./bulb.js'),
+    bulb = require('../static/bulb.js'),
     Bulb = bulb.Bulb;
 
 var runId = 0;
@@ -48,7 +48,7 @@ function StrandControl(host, port) {
         }
     };
 }
-var strand = new StrandControl('141.212.108.242', 1337);
+var strand = new StrandControl('141.212.107.126', 1337);
 
 Bulb.prototype.strandBytes = function(scale) {
     function limit(x) {

@@ -4,8 +4,8 @@
 
 // Requires:
 //
-//  <script src="//code.jquery.com/jquery-latest.js"></script>
-//  <script src="//blinken.org/bulb.js"></script>  
+//  <script src="https://code.jquery.com/jquery-latest.js"></script>
+//  <script src="https://blinken.org/bulb.js"></script>  
 //
 
 function Blinken(obj) { // {title, author, target}

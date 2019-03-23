@@ -18,31 +18,12 @@ app.use(logger("default"));
 
 // This allows people to connect in on the /stream websocket, and get a continuous stream of frames
 // of the current running show (~5KB/s per stream)
-app.ws('/ws/stream', function(ws, req) {
+app.ws('/stream', function(ws, req) {
   ws.on('message', function(msg) {
     console.log('ws message:', msg);
   });
   runner.addStream(ws);
   console.log('stream websocket', req._remoteAddress);
-});
-
-app.get('/', function(req, res) {
-    res.sendfile('static/index.html');
-});
-
-app.get('/client.js', function(req, res) {
-    fs.readFile(__dirname + '/static/client.js', 'utf8', function(err, client) {
-        if (err) { throw new Error(err); };
-        fs.readFile(__dirname + '/bulb.js', 'utf8', function(err, bulb) {
-            if (err) { throw new Error(err); }
-            res.setHeader('Content-Type', 'text/javascript');
-            res.send(client + "\n" + bulb);
-        });
-    });
-});
-
-app.get('/watch-live.html', function(req, res) {
-    res.sendfile('static/watch-live.html');
 });
 
 app.post('/publish', function(req, res){
@@ -71,13 +52,13 @@ var json_obj_cache = {};
 // For jsbin.com and jsfiddle.net
 function url_normalize(url) {
 
-    if (url.indexOf('http://jsbin.com/')==0 && url.indexOf('/edit')!=-1) {
+    if (url.indexOf('https://jsbin.com/')==0 && url.indexOf('/edit')!=-1) {
         return url.substr(0, url.indexOf('/edit'));
-    } else if (url.indexOf('http://jsbin.com/')==0 && url.indexOf('/show')==(url.length - '/show'.length)) {
+    } else if (url.indexOf('https://jsbin.com/')==0 && url.indexOf('/show')==(url.length - '/show'.length)) {
         return url.substr(0, url.indexOf('/show'));
-    } else if (((url.indexOf('http://fiddle.jshell.net/')==0 || url.indexOf('http://jsfiddle.net/')) && url.indexOf('/show')==-1)) {
+    } else if (((url.indexOf('https://fiddle.jshell.net/')==0 || url.indexOf('https://jsfiddle.net/')) && url.indexOf('/show')==-1)) {
         return url + '/show/';
-    } else if (url.indexOf('http://jsfiddle.net/')==0) {
+    } else if (url.indexOf('https://jsfiddle.net/')==0) {
         // Ugh hack
         return url + '/';
     } else {
@@ -163,7 +144,7 @@ app.all('/cancel/:token', function(req, res){
     }
 });
 
-host = 'localhost'
-port = 3000
+var host = 'localhost'
+var port = 3000
 app.listen(port, host);
 console.log('Listening on ' + host + ":" + port);
