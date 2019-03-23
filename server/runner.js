@@ -29,10 +29,7 @@ function StrandControl(host, port) {
     this.update = function(lights) {
         payload = Array();
         var scale = getBrightnessScale(lights);
-        //for (var i=0; i < lights.length; i++) {
-        // TODO: This is a temporary hack, since the
-        // physical strand is truncated to 99 lights.
-        for (var i=0; i < 99; i++) {
+        for (var i=0; i < lights.length; i++) {
             payload = payload.concat(lights[lights.length-1-i].strandBytes(scale));
         }
         var packet = Buffer.from(payload);
