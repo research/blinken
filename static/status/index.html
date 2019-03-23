@@ -3,7 +3,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet"/>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap-responsive.min.css" rel="stylesheet"/>
   <link href="/css/local.css" rel="stylesheet"/>
-  <title>BBB Blinken Bulbs - Status</title>
+  <title>BBB Blinken Bulbs - Live Status</title>
 
   <style type="text/css">
     body {
@@ -37,7 +37,16 @@
     .webcam_container h2 {
       text-align: center;
     }
+    .live_container {
+      margin-top: 25px;
+      width: 400px;
+      height: 650px;
+      border: 0;
+      background-color: #f0f0f0;
+      border-radius: 10px;
+    }
   </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script> 
 </head>
 
 <body style="background-color: #f5f5f5">
@@ -45,7 +54,7 @@
     <div class="navbar-inner">
     <a class="brand" href="/">BBB Blinken Bulbs</a>
        <ul class="nav pull-right">
-          <li><a href="/camera">Status</a></li>
+          <li><a href="/status">Status</a></li>
           <li><a href="/gallery">Gallery</a></li>
 	  <li><a href="https://jsbin.com/libimax/2/edit#javascript,console,output">Example</a></li>
 	  <li><a href="https://www.reddit.com/r/bbbblinken">Subreddit</a></li>
@@ -80,15 +89,18 @@ update_title();
 	<div id="body">
 		<div id="container" class="container">
             		<div id="titles" class="pull-left" style="margin-left: 21%; margin-top: 23%; width: 200px"> <!--style="float: left; margin-left: 20%;">-->
-                		<h2 id="camtitle">Some title</h2>
-                		<h2 id="camtime">0</h2>
+                		<h2 id="camtitle"></h2>
+                		<h2 id="camtime"></h2>
             		</div>
+			<iframe class="live_container" src="live.html"></iframe>
+<!--			
+Hopefully the webcam will come back some day ...
+
 			<div id="webcam_container" class="webcam_container pull-right"> <!-- style="float: right; margin-right: 20%"> -->
 				<iframe src="http://172.99.65.105:32768" width="100%" height="100%" style="border:0;" scrolling="no"></iframe>
+-->
 			</div>
 	</div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.4/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
 </body>
 </html>
