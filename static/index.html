@@ -76,7 +76,7 @@
 </p>-->
 <p class="front">
 Hello! Did you know that the lights in the BBB Building are programmable?
-This year, we are providing a new API for the lights to allow people to program them via Javascript.
+This year, we are providing a new API for the lights to allow people to program them via JavaScript.
 This allows us to provide you with a simple simulator to play around with and test your
 light controller function, and then push your controller to the strand for all
 the world to see when you're done.
@@ -105,8 +105,8 @@ of the lights.
 <h3>Using the API</h3>
 <p>
 To use our simulator and control the lights, you'll need to include our <a
-href="/client.js">client.js</a> and <a href="/bulb.js">bulb.js</a> libraries, which
-export Blinken and Bulb objects. You can instantiate it using the <code>new</code>
+href="/client.js">client.js</a> library, which
+exports Blinken and Bulb objects. You can instantiate it using the <code>new</code>
 constructor, giving it an object that contains a title and who wrote this show:
 </p>
 
@@ -200,15 +200,13 @@ b.run(initializer);
 
 <h3>Result</h3>
 <p>That's it! As long as we include the <a
-href="/client.js">client.js</a>, <a href="/bulb.js">bulb.js</a>, and <a
+href="/client.js">client.js</a> and <a
 href="https://code.jquery.com/jquery-latest.js">jquery</a> libraries
-on the same page as the above javascript, we'll see something like this when run in
+on the same page as the above JavaScript, we'll see something like this when run in
 a browser (feel free to click and drag or use the scroll wheel to zoom in and
 out):
 
-<div style="height: 300px; width: 200px; overflow: hidden; margin: auto;">
-<iframe style="border 1px solid #ccc; margin: auto; display: block; position: relative; top: -35px;" height="300px" width="200px" src="https://jsbin.com/efELeHo/1/embed?output"></iframe>
-</div>
+<script async src="https://jsfiddle.net/jhalderm/aLgm721f/2/embed/result/"></script>
 
 <p>When we're satisfied with our simulation, simply click the <code>Run on
 Stairs</code> button on the simulation page, and then <a
@@ -223,23 +221,23 @@ blinkens.</p>
 
 <h3>Putting it all together</h3>
 
-<p>You can use any javascript environment you want, including running it in
+<p>You can use any JavaScript environment you want, including running it in
 your browser locally, but it's easiest to share your code and simulation with
 others (and the <a href="https://www.reddit.com/r/bbbblinken">subreddit</a>) if
-you use a Javascript pastebin-like site. We recommend <a
+you use a JavaScript pastebin-like site. We recommend <a
 href="https://jsbin.com/">jsbin.com</a>, since it allows you to see the console
 as one of the panels. The console can be helpful for finding errors in your
 program. 
 </p>
 
 <p>
-To include the javascript libraries on jsbin.com, you'll need to include them
+To include the JavaScript libraries on jsbin.com, you'll need to include them
 with the <code>&lt;script&gt;</code> tag in the HTML pane, like this:
 <script src="https://gist.github.com/jhalderm/4079612b616e0f225460468da8583577.js"></script>
 </p>
 
 <p>
-Javascript allows us to do all of the above much more compactly through the
+JavaScript allows us to do all of the above much more compactly through the
 use of anonymous functions. Here's a cleaner, more "functional" version of the
 simple red-green blinking demo:
 </p>
@@ -282,7 +280,7 @@ simple red-green blinking demo:
 
 <p>
 Here's another <a
-href="https://jsbin.com/libimax/2/edit#javascript,console,output">example</a>
+href="https://jsbin.com/libimax/2/edit#JavaScript,console,output">example</a>
 of a simple snake program to help inspire additional ideas.</p>
 
 <p>Happy Hacking!</p>
