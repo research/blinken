@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from bottle import route, run, template, response
+from bottle import route, run, response, template
 import json
 import urllib
 import urllib2
@@ -9,25 +9,25 @@ import os
 import time
 import hashlib
 
-JSON_FILE = '/tmp/bbbblinken.json.last'
-PER_PAGE=8
+JSON_FILE = 'cache/bbbblinken.json.last'
+PER_PAGE=6
 
 def get_cached_json():
-    f = open(JSON_FILE, 'r')
-    obj = json.loads(f.read())    
-    f.close()
+    try:
+        with open(JSON_FILE, 'r') as f:
+            obj = json.loads(f.read())
+    except:
+        return {}
     return obj
- 
 
 def get_bbbblinken_json():
-
     diff = time.time() - os.path.getmtime(JSON_FILE)
     print '%s seconds since last...' % (str(diff))
     if (diff < 60):
         return get_cached_json()
 
     try:
-        f = urllib2.urlopen("http://www.reddit.com/r/bbbblinken.json", timeout=2.0)
+        f = urllib2.urlopen("https://www.reddit.com/r/bbbblinken.json", timeout=2.0)
     except Exception as e:
         # This is likely a 429 from reddit. Should update the cached file.
         os.utime(JSON_FILE, None)
@@ -57,7 +57,7 @@ def get_bbbblinken_json():
 # show url
 def show_url(url):
 
-    if url.startswith('http://output.jsbin.com'):
+    if url.startswith('https://output.jsbin.com'):
         url = url.replace('//output.', '//')
 
     if url.startswith('http://jsbin.com/'):
@@ -89,7 +89,7 @@ def code_url(url):
 # will call urllib2.urlopen/read 
 def js_code(url):
 
-    cache_fn = hashlib.md5(url).hexdigest()
+    cache_fn = "cache/" + hashlib.md5(url).hexdigest()
     if os.path.isfile(cache_fn):
         f = open(cache_fn, 'r')
         buf = f.read()
@@ -142,7 +142,6 @@ def js_code(url):
     else:
         resp = urllib2.urlopen(url)
         buf = resp.read()
-
     
     f = open(cache_fn, 'w')
     f.write(buf)
@@ -150,70 +149,18 @@ def js_code(url):
     return buf
 
 
-@route('/gallery')
-@route('/gallery/<page_s>')
+@route('/')
+@route('/<page_s>')
 def index(page_s='0'):
     page = int(page_s)
 
-    buf = '''<html>
-<head>
-<style>
-iframe {
-    height: 500px;
-    width: 250px;
-    border: none;
-    position: relative;
-    top: -34px;
-}
-
-.clearfix {
-    clear: both;
-}
-
-iframe.reddit {
-    height: 30px;
-    width: 120px;
-    border: none;
-    top: 0px;
-}
-
-.blinken {
-    border: 1px solid #ccc;
-    width: 300px;
-    display: inline;
-    float: left;
-    margin-left: 10px;
-}
-.blinken h1 {
-    width: 300px;
-    height: 45px;
-    font-size: 16pt;
-}
-
-.blinken a {
-    text-decoration: none;
-}
-
-.blinken a:hover {
-    text-decoration: underline;
-}
-
-
-.blinken center {
-    width: 300px;
-}
-</style>
-</head>
-<body>
-<h1>BBBBlinken</h1>
-<div class="container">'''
-    #return str(obj)
     obj = get_bbbblinken_json()
 
     idx = -1
     hit_index = False
     more_pages = False
-    tmp_buf = ''
+    items = []
+    print len(obj['data']['children'])
     for child in obj['data']['children']:
         c = child['data']
         if c['is_self']:
@@ -225,45 +172,16 @@ iframe.reddit {
                 more_pages = True
             continue
         hit_index = True
-        tmp_buf += '''<div class="blinken">
-<center>
- <div>
-   <span>
-     <iframe class="reddit" src="http://www.reddit.com/static/button/button1.html?width=120&url=%s&newwindow=1"></iframe>
-   </span>
-   <span>
-     <h1><a href="http://www.reddit.com%s">%s</a></h1>
-     (<a href="http://www.reddit.com%s">comments</a>) (<a href="%s">code</a>)
-   </span>
- </div>
- <div style="width: 250px; height: 500px; overflow: hidden;">
- <iframe src="%s"></iframe>
- </div>
-</center></div>\n''' % \
-            (c['url'], c['permalink'], c['title'], c['permalink'], code_url(c['url']), url)
+        c['code_url'] = code_url(c['url'])
+        c['show_url'] = url.replace("http://", "https://")
+        items += [c]
+
+    return template('index', items=items, page=page, more_pages=more_pages)
 
 
-    nav_buf = ''
-    if (page!=0):
-        nav_buf += '<a class="prev_link" href="/gallery/%d">&lt;&lt; Previous</a>\n' % (page-1)
-
-    if (more_pages):
-        nav_buf += '<a class="next_link" href="/gallery/%d">Next &gt;&gt;</a>\n' % (page+1)
-    
-    buf += nav_buf + '<br/><br/>'
-    buf += tmp_buf
-    buf += '<div class="clearfix"></div><br/></div><br/>\n' # container
-    buf += nav_buf
-
-    return buf + '''</body>
-</html>'''
-    #return template('<b>Hello {{name}}</b>!', name=name)
-
-
-@route('/gallery/random')
-@route('/gallery/random/')
+@route('/random')
+@route('/random/')
 def getrandom():
-    print 'rand??'
     print 'getrandom req...'
     obj = get_bbbblinken_json()
     print 'got object'
@@ -274,7 +192,6 @@ def getrandom():
         if c['is_self']:
             continue
         candidates.append(c)
-        #urls.append(show_url(c['url']))
  
     winner = random.choice(candidates)
     url = show_url(winner['url'])
@@ -288,7 +205,4 @@ def getrandom():
     output['name'] = winner['title']
     return json.dumps(output)
 
-    #return 'This is going to be random'
-
-
-run(host='localhost', port=8080)
+run(host='localhost', port=3001)

@@ -97,8 +97,12 @@ function runLocalShow(callback) {
 function getIdleCode(callback) {
 
     return https.get('https://blinken.org/gallery/random', function(res) {
-        res.on('data', function(output) { 
-            //output is (hopefully) json with code, url, and name members
+	let output = '';
+	res.on('data', (chunk) => {
+	    output += chunk;
+	});		
+	res.on('end', () => { 
+            // output is (hopefully) json with code, url, and name members
             // code is (hopefully) some javascript, but it uses the Blinken object
             // which is undefined here. So we want to mock up a blinken object
 

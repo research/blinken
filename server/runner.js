@@ -1,7 +1,7 @@
 var vm = require('vm'),
     util = require('util'),
     dgram = require('dgram'),
-    bulb = require('../static/bulb.js'),
+    bulb = require('./bulb.js'),
     Bulb = bulb.Bulb;
 
 var runId = 0;
