@@ -4,3 +4,4 @@ node_modules
 .*
 gallery/cache/*
 server/uploads/*
+nohup.out
