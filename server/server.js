@@ -14,7 +14,7 @@ var app = expressWs.app;
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(logger("default"));
+app.use(logger("combined"));
 
 // This allows people to connect in on the /stream websocket, and get a continuous stream of frames
 // of the current running show (~5KB/s per stream)

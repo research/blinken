@@ -1,7 +1,7 @@
 var crypto = require('crypto'),
     fs = require('fs'),
     runner = require('./runner.js'),
-    http = require('http'),
+    https = require('https'),
     vm = require('vm'),
     util = require('util');
 
@@ -96,12 +96,7 @@ function runLocalShow(callback) {
 
 function getIdleCode(callback) {
 
-    var options = {
-       host: "blinken.eecs.umich.edu",
-        port: 80,
-        path: "/gallery/random"
-    };
-    return http.get(options, function(res) {
+    return https.get('https://blinken.org/gallery/random', function(res) {
         res.on('data', function(output) { 
             //output is (hopefully) json with code, url, and name members
             // code is (hopefully) some javascript, but it uses the Blinken object

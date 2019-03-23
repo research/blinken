@@ -1,0 +1,11 @@
+blinken.org {
+    log stdout
+    errors stderr
+
+    root /home/jhalderm/blinken/static/
+    proxy /api/0/ localhost:3000 {
+        without /api/0
+        websocket
+    }
+}
+
