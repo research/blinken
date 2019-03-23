@@ -26,13 +26,13 @@ iframe.reddit {
 
 .blinken {
     border: 1px solid #ccc;
-    width: 300px;
+    width: 290px;
     display: inline;
     float: left;
     margin-left: 10px;
 }
 .blinken h4 {
-    width: 300px;
+    width: 290px;
     height: 45px;
     font-size: 16pt;
 }
@@ -51,7 +51,7 @@ iframe.reddit {
 }
 
 .blinken center {
-    width: 300px;
+    width: 290px;
 }
   </style>
 </head>
@@ -82,9 +82,9 @@ iframe.reddit {
 <a class="next_link" href="/gallery/{{page+1}}">Next &gt;&gt;</a>
 %end
 </div>
-<br/>
+</div>
 
-<div class="container">
+<div class="content">
 %for item in items:
 <div class="blinken">
 <center>
@@ -112,8 +112,7 @@ iframe.reddit {
 %if more_pages:
 <a class="next_link" href="/gallery/{{page+1}}">Next &gt;&gt;</a>
 %end
-</div
-
+</div><br/>
            </div>
          </div>
        </div>
