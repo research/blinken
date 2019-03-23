@@ -1,3 +1,5 @@
+#!/usr/bin/node
+
 var util = require('util');
 var scheduler = require('./scheduler.js');
 var express = require('express');

@@ -1,7 +1,7 @@
 <html>
   <head>
-    <script src="http://code.jquery.com/jquery-latest.js"></script>
-    <script src="http://blinken.eecs.umich.edu/client.js"></script>
+    <script src="https://code.jquery.com/jquery-latest.js"></script>
+    <script src="https://blinken.org/client.js"></script>
     <script type="text/javascript">
 var latest = Array(100);
 
@@ -28,7 +28,7 @@ function run_lights(lights) {
 
 function updateTitle()
 {
-    $.get('http://blinken.eecs.umich.edu/current', function(data) {
+    $.get('https://blinken.org/api/0/current', function(data) {
         var title = data.title;
         if (typeof title === 'undefined') {
             title = data.name;
@@ -49,7 +49,7 @@ function updateTitle()
 
 window.onload = function() {
 
-    var ws = new WebSocket('ws://blinken.eecs.umich.edu/ws/stream');
+    var ws = new WebSocket('wss://blinken.org/api/0/stream');
     ws.binaryType = 'arraybuffer';
     ws.onmessage = function(evt) {
         // Update latest
