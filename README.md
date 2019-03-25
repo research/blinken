@@ -9,5 +9,5 @@ For more information, see the [Documentation](https://docs.google.com/document/d
 
 To run the server, you need to launch two services:
 
-    cd blinken/gallery; nohup ./gallery.py &
-    cd blinken/server; nohup ./server.js &
+    cd blinken/gallery && nohup ./gallery.py &
+    cd blinken/server && nohup ./server.js &
