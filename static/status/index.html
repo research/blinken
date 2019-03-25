@@ -4,7 +4,6 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap-responsive.min.css" rel="stylesheet"/>
   <link href="/css/local.css" rel="stylesheet"/>
   <title>BBB Blinken Bulbs - Live Status</title>
-
   <style type="text/css">
     body {
       margin: 0;
@@ -56,51 +55,43 @@
        <ul class="nav pull-right">
           <li><a href="/status/">Status</a></li>
           <li><a href="/gallery/">Gallery</a></li>
-	  <li><a href="https://jsbin.com/libimax/edit#javascript,console,output">Example</a></li>
-	  <li><a href="https://www.reddit.com/r/bbbblinken">Subreddit</a></li>
+          <li><a href="https://jsbin.com/libimax/edit#javascript,console,output">Example</a></li>
+          <li><a href="https://www.reddit.com/r/bbbblinken">Subreddit</a></li>
        </ul>
     </div>
   </div>
-
-<script>
+  <script>
 function update_title()
 {
-    $.get("/api/0/current", function(data) {
-        console.log('got it: ' + data);
+    $.get('/api/0/current', function(data) {
         var title = data.title;
         if (typeof title === 'undefined') {
             title = data.name;
         }
-        $("#camtitle")[0].innerHTML = "<a href=\""+data.url+"\">"+title+"</a>";
+        $('#camtitle')[0].innerHTML = '<a href="'+data.url+'">'+title+'</a>';
         var secs = Math.round(data.time_left);
         if (secs < 0)
             secs = 0;
         var mins = Math.floor(secs/60);
         secs = secs % 60;
-        console.log("secs="+secs+",mins="+mins);
-        $("#camtime")[0].innerHTML = ""+mins+":"+((secs < 10) ? '0'+secs : secs);
-
+        $('#camtime')[0].innerHTML = ''+mins+':'+((secs < 10) ? '0'+secs : secs);
         setTimeout(update_title, 500);
     }, 'json');
 }
 update_title();
-</script>
-
-	<div id="body">
-		<div id="container" class="container">
-            		<div id="titles" class="pull-left" style="margin-left: 21%; margin-top: 23%; width: 200px"> <!--style="float: left; margin-left: 20%;">-->
-                		<h2 id="camtitle"></h2>
-                		<h2 id="camtime"></h2>
-            		</div>
-			<iframe class="live_container" src="live.html"></iframe>
-<!--			
-Hopefully the webcam will come back some day ...
-
-			<div id="webcam_container" class="webcam_container pull-right"> <!-- style="float: right; margin-right: 20%"> -->
-				<iframe src="http://172.99.65.105:32768" width="100%" height="100%" style="border:0;" scrolling="no"></iframe>
--->
-			</div>
-	</div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
-</body>
+  </script>
+  <div id="body">
+    <div id="container" class="container">
+      <div id="titles" class="pull-left" style="margin-left: 21%; margin-top: 23%; width: 200px"> <!--style="float: left; margin-left: 20%;">-->
+        <h2 id="camtitle"></h2>
+        <h2 id="camtime"></h2>
+      </div>
+      <iframe class="live_container" src="live.html"></iframe>
+<!-- Hopefully the webcam will come back some day ...
+     <div id="webcam_container" class="webcam_container pull-right"> <!-- style="float: right; margin-right: 20%">
+       <iframe src="http://172.99.65.105:32768" width="100%" height="100%" style="border:0;" scrolling="no"></iframe>
+     </div> -->
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+  </body>
 </html>

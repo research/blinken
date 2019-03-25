@@ -1,13 +1,10 @@
 <html>
   <head>
-    <script src="https://code.jquery.com/jquery-latest.js"></script>
-    <script src="https://blinken.org/client.js"></script>
-    <style>
-      #title, #time { display: none; |
-    </style>
+    <script src='https://code.jquery.com/jquery-latest.js'></script>
+    <script src='https://blinken.org/client.js'></script>
+    <style>#title, #time, button { display: none; }</style>
     <script>
 var latest = Array(100);
-
 for (var i=0; i<latest.length; i++) {
     latest[i] = {a:0, r:0, g:0, b:0};
 }
@@ -24,7 +21,7 @@ function run_lights(lights) {
             lights[i].rgb(bulb.r, bulb.g, bulb.b);
             lights[i].a = bulb.a;
         }
-        return 5;
+        return 10;
     };
 }
 
@@ -35,17 +32,14 @@ function updateTitle()
         if (typeof title === 'undefined') {
             title = data.name;
         }
-        $("#title")[0].innerHTML = "<a href=\""+data.url+"\">"+title+"</a>";
+        $('#title')[0].innerHTML = '<a href="'+data.url+'">'+title+'</a>';
 
         var secs = Math.round(data.time_left);
         if (secs < 0)
             secs = 0;
         var mins = Math.floor(secs/60);
         secs = secs % 60;
-        $("#time")[0].innerHTML = ""+mins+":"+((secs < 10) ? '0'+secs : secs);
-
-
-
+        $('#time')[0].innerHTML = ''+mins+':'+((secs < 10) ? '0'+secs : secs);
     }, 'json');
 }
 
@@ -54,7 +48,6 @@ window.onload = function() {
     var ws = new WebSocket('wss://blinken.org/api/0/stream');
     ws.binaryType = 'arraybuffer';
     ws.onmessage = function(evt) {
-        // Update latest
         var data = new Uint8Array(evt.data);
         for (var i=0; i<100; i++) {
             latest[99-i].a = data[i*4];
@@ -63,19 +56,15 @@ window.onload = function() {
             latest[99-i].b = data[i*4+3];
         }
     }
-
     //setInterval(updateTitle, 500);
 
     var b = new Blinken();
     b.run(run_lights);
-
-    document.getElementsByTagName('button')[0].style.display = "none";
 }
-
     </script>
-    </head>
-<body>
-<div id="title"></div>
-<div id="time"></div>
-</body>
+  </head>
+  <body>
+    <div id=title></div>
+    <div id=time></div>
+  </body>
 </html>
