@@ -34,8 +34,8 @@ function StrandControl(host, port) {
         }
         var packet = Buffer.from(payload);
         this.sock.send(packet, 0, packet.length, port, host,
-	                    function(err, b) {
-	                        if (err) { console.log('Network error: ' + err); }
+                            function(err, b) {
+                                if (err) { console.log('Network error: ' + err); }
                         });
         for (var i=0; i<this.streams.length; i++) {
             try {
@@ -107,7 +107,11 @@ exports.run = function(params) {
     var script, sandbox = {window : fakeWindow, Bulb : Bulb, WebSocket: WS};
     try {
         script = vm.createScript('main = ' + params.code);
-        script.runInNewContext(sandbox);
+        script.runInNewContext(sandbox, {'timeout': 100,
+                                         'contextCodeGeneration': {
+                                             'strings': false,
+                                             'wasm': false
+                                         }});
     } catch (e) {
         runId++;
         return params.after(-1, 'Error during compilation: ' + e.toString());
