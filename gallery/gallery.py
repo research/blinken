@@ -55,10 +55,13 @@ def get_bbbblinken_json():
 
     return obj
 
-# show url
-def show_url(url):
+def update_url(url):
     url = url.replace('wezuzoho', 'torijef') # fix Blazers
     url = url.replace('joviqivido', 'zanutiy') # fix Standard Sort
+    return url
+
+def show_url(url):
+    url = update_url(url)
     if url.startswith('https://output.jsbin.com'):
         url = url.replace('//output.', '//')
 
@@ -77,6 +80,7 @@ def show_url(url):
         return url
 
 def code_url(url):
+    url = update_url(url)
     if url.startswith('http://output.jsbin.com'):
         url = url.replace('//output.', '//')
 
