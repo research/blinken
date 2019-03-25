@@ -102,7 +102,7 @@ iframe.reddit {
      (<a href="https://www.reddit.com{{item['permalink']}}">comments</a>) (<a href="{{item['code_url']}}">code</a>)
    </div>
  </div>
- <iframe class="preview" sandbox="allow-scripts" src="/gallery/preview/{{item['preview_hash']}}"></iframe>
+ <iframe class="preview" sandbox="allow-scripts allow-same-origin" src="/gallery/preview/{{item['preview_hash']}}"></iframe>
 </center></div>
 %end
 
