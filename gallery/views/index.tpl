@@ -5,31 +5,31 @@
   <link href="/css/local.css" rel="stylesheet"/>
   <title>BBB Blinken Bulbs - Gallery</title>
   <style>
-iframe {
+iframe.preview {
     height: 500px;
-    width: 250px;
-    border: none;
-    position: relative;
-    top: -34px;
-}
-
-.clearfix {
-    clear: both;
+    width: 100%;
+    background: #f8f8f8;
+    border: 0;
+    margin-top: 5px;
+    border-top: 1px solid #ccc;
 }
 
 iframe.reddit {
     height: 30px;
-    width: 120px;
     border: none;
     top: 0px;
+    width: 100%;
+    background: #f8f8f8;
+    border: 0;
 }
 
 .blinken {
     border: 1px solid #ccc;
+    background: #f8f8f8;
     width: 290px;
     display: inline;
     float: left;
-    margin-left: 10px;
+    margin: 5px;
 }
 .blinken h4 {
     width: 290px;
@@ -53,6 +53,11 @@ iframe.reddit {
 .blinken center {
     width: 290px;
 }
+
+.clearfix {
+    clear: both;
+}
+
   </style>
 </head>
 <body style="background-color: #f5f5f5">
@@ -90,16 +95,14 @@ iframe.reddit {
 <center>
  <div>
    <span>
-     <iframe class="reddit" src="https://www.reddit.com/static/button/button1.html?width=120&url={{item['url']}}&newwindow=1"></iframe>
+     <iframe class="reddit" src="https://www.reddit.com/static/button/button1.html?width=120&url=https://reddit.com{{item['permalink']}}&newwindow=1"></iframe>
    </span>
-   <span>
+   <div>
      <h4><a href="https://www.reddit.com{{item['permalink']}}">{{item['title']}}</a></h4>
      (<a href="https://www.reddit.com{{item['permalink']}}">comments</a>) (<a href="{{item['code_url']}}">code</a>)
-   </span>
+   </div>
  </div>
- <div style="width: 250px; height: 500px; overflow: hidden;">
- <iframe src="{{item['show_url']}}"></iframe>
- </div>
+ <iframe class="preview" sandbox="allow-scripts" src="/gallery/preview/{{item['preview_hash']}}"></iframe>
 </center></div>
 %end
 

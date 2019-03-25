@@ -27,7 +27,8 @@ def get_bbbblinken_json():
         return get_cached_json()
 
     try:
-        f = urllib2.urlopen("https://www.reddit.com/r/bbbblinken.json", timeout=2.0)
+        req = urllib2.Request("https://www.reddit.com/r/bbbblinken/top.json?sort=top&t=all&limit=100", None, { 'User-Agent' : 'Blinken.org/1.0' })
+        f = urllib2.urlopen(req, timeout=2.0)
     except Exception as e:
         # This is likely a 429 from reddit. Should update the cached file.
         os.utime(JSON_FILE, None)
@@ -56,7 +57,8 @@ def get_bbbblinken_json():
 
 # show url
 def show_url(url):
-
+    url = url.replace('wezuzoho', 'torijef') # fix Blazers
+    url = url.replace('joviqivido', 'zanutiy') # fix Standard Sort
     if url.startswith('https://output.jsbin.com'):
         url = url.replace('//output.', '//')
 
@@ -75,7 +77,6 @@ def show_url(url):
         return url
 
 def code_url(url):
-
     if url.startswith('http://output.jsbin.com'):
         url = url.replace('//output.', '//')
 
@@ -86,10 +87,17 @@ def code_url(url):
     else:
         return url
 
+@route('/gallery/preview/<hash>')
+def code(hash):
+    cache_fn = "cache/" + hash
+    if os.path.isfile(cache_fn):
+        with open(cache_fn, 'r') as f:
+            buf = f.read()
+        return '<html><script src="https://code.jquery.com/jquery-latest.js"></script><script src="https://blinken.org/client.js"></script></head><body><script>' + buf + '</script></body></html>'
+
 # will call urllib2.urlopen/read 
 def js_code(url):
-
-    cache_fn = "cache/" + hashlib.md5(url).hexdigest()
+    cache_fn = "cache/" + hashlib.sha256(url).hexdigest()
     if os.path.isfile(cache_fn):
         f = open(cache_fn, 'r')
         buf = f.read()
@@ -101,6 +109,7 @@ def js_code(url):
 
     # http://jsbin.com/oWOfadIM/73/edit?html,js,output -> http://jsbin.com/oWOfadIM/73/js
     if url.startswith('http://jsbin.com/'):
+        url = url.replace('http://', 'https://')
         if '/show' in url or '/edit' in url or '/embed' in url:
             js_url = url[0:url.rindex('/')] + '/js'
         else:
@@ -111,9 +120,7 @@ def js_code(url):
 
         print 'js_url: ' + js_url
         try:
-            #resp = urllib2.urlopen(js_url, timeout=2.0)
-            headers = { 'User-Agent' : 'Mozilla/5.0' }
-            req = urllib2.Request(js_url, None, headers)
+            req = urllib2.Request(js_url, None, { 'User-Agent' : 'Mozilla/5.0' })
             resp = urllib2.urlopen(req)
         except Exception as e:
             print e
@@ -121,18 +128,17 @@ def js_code(url):
         buf = resp.read()
 
     elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/')):
-        if url.endswith('/show'):
-            url = url[0:url.rindex('/show')]
-        js_url = code_url(url) + '/embedded/js/'
-        # This url still has a bunch of crap in it...
-        print 'js_url: ' + js_url
+        path = url[8:].split('/')
+        if len(path) < 2:
+            return None
+        js_url = 'http://jsfiddle.net/%s/embedded/js/' % (path[2])
         try:
-            resp = urllib2.urlopen(js_url, timeout=2.0)
+            resp = urllib2.urlopen(js_url, timeout=5.0)
         except Exception as e:
             print e
             return None
         js_page = resp.read()
-        js_start_tag = '<pre data-language="js" class="js tCont  active">'
+        js_start_tag = '<pre class="tCont active">'
         js_start = js_page.index(js_start_tag)
         js_end = js_page.index('</pre>', js_start)
 
@@ -147,7 +153,6 @@ def js_code(url):
     f.write(buf)
     f.close()
     return buf
-
 
 @route('/gallery')
 @route('/gallery/')
@@ -166,6 +171,9 @@ def index(page_s='0'):
         c = child['data']
         if c['is_self']:
             continue
+        if c['title'] == 'Drunk Hyperactive Ant' or \
+           c['title'] == 'Christmas Blinken!':
+            continue # program is lost
         url = show_url(c['url'])
         idx += 1
         if not(idx in range(page*PER_PAGE, (page+1)*PER_PAGE)):
@@ -174,11 +182,12 @@ def index(page_s='0'):
             continue
         hit_index = True
         c['code_url'] = code_url(c['url'])
-        c['show_url'] = url.replace("http://", "https://")
+        c['show_url'] = url.replace('http://', 'https://')
+        c['preview_hash'] = hashlib.sha256(url).hexdigest()
+        js_code(url) # warm up cache
         items += [c]
 
     return template('index', items=items, page=page, more_pages=more_pages)
-
 
 @route('/api/0/random')
 def getrandom():

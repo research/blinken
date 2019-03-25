@@ -156,7 +156,7 @@ function getIdleCode(callback) {
 
 function saveCode(code) {
     var uploadPath = __dirname + '/uploads/';
-    var hash = crypto.createHash('sha1').update(code).digest('hex');
+    var hash = crypto.createHash('sha256').update(code).digest('hex');
     console.log('job hash: ' + hash);
     console.log(code);
     files = fs.readdirSync(uploadPath);
