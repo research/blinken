@@ -149,8 +149,9 @@ def js_code(url):
     return buf
 
 
-@route('/')
-@route('/<page_s>')
+@route('/gallery')
+@route('/gallery/')
+@route('/gallery/<page_s>')
 def index(page_s='0'):
     page = int(page_s)
 
@@ -179,8 +180,7 @@ def index(page_s='0'):
     return template('index', items=items, page=page, more_pages=more_pages)
 
 
-@route('/random')
-@route('/random/')
+@route('/api/0/random')
 def getrandom():
     print 'getrandom req...'
     obj = get_bbbblinken_json()

@@ -3,11 +3,8 @@ blinken.org {
     errors stderr
 
     root /home/jhalderm/blinken/static/
-    proxy /api/0/ localhost:3000 {
-        without /api/0
-        websocket
-    }
-    proxy /gallery localhost:3001 {
-        without /gallery
-    }
+
+    proxy /gallery localhost:3001
+    proxy /api/0/random localhost:3001
+    proxy /api/0/ localhost:3000 { websocket }
 }

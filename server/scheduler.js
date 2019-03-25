@@ -94,7 +94,7 @@ function runLocalShow(callback) {
  
 function getIdleCode(callback) {
     // Run a program from the gallery to get the metadata and 'run' function from the Blinken object.
-    return https.get('https://blinken.org/gallery/random', function(res) {
+    return https.get('https://blinken.org/api/0/random', function(res) {
         let output = '';
         res.on('data', (chunk) => {
             output += chunk;

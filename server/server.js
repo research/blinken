@@ -13,12 +13,14 @@ var ews = require('express-ws')
 var expressWs = ews(express());
 var app = expressWs.app;
 
+const prefix = "/api/0" // path to this service
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(logger('combined'));
 
 // This allows people to connect in on the /stream websocket, and get a continuous stream of frames
 // of the current running show (~5KB/s per stream)
-app.ws('/stream', function(ws, req) {
+app.ws(prefix+'/stream', function(ws, req) {
   ws.on('message', function(msg) {
     console.log('ws message:', msg);
   });
@@ -26,7 +28,7 @@ app.ws('/stream', function(ws, req) {
   console.log('stream websocket', req._remoteAddress);
 });
 
-app.post('/publish', function(req, res){
+app.post(prefix+'/publish', function(req, res){
     res.header('Access-Control-Allow-Origin', '*');
     var token = scheduler.makeJob(req.body.code, req.body.url, req.body.title, req.body.author);
     console.log('published from: ' + req.body.url);
@@ -34,7 +36,7 @@ app.post('/publish', function(req, res){
     res.send(token);
 });
 
-app.get('/status/:token', function(req, res){
+app.get(prefix+'/status/:token', function(req, res){
     res.header('Access-Control-Allow-Origin', '*');
     var status = scheduler.getStatus(req.params.token);
     if (typeof status === 'undefined') {
@@ -119,7 +121,7 @@ function name_from_url(params) {
     get_name_from_url(params);
 }
 
-app.get('/current', function(req, res){
+app.get(prefix+'/current', function(req, res){
     res.header('Access-Control-Allow-Origin', '*');
     var params = runner.getCurrent();
     var time_left = (params.start + params.limit) - Date.now()/1000;
@@ -134,7 +136,7 @@ app.get('/current', function(req, res){
     res.send(JSON.stringify(current_job));
 });
 
-app.all('/cancel/:token', function(req, res){
+app.all(prefix+'/cancel/:token', function(req, res){
     res.header('Access-Control-Allow-Origin', '*');
     if (typeof scheduler.getStatus(req.params.token) === 'undefined') {
         res.send(404);
