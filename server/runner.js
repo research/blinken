@@ -116,7 +116,8 @@ exports.run = function(params) {
         vm.runInContext('___main=' + params.code, sandbox, options);
     } catch (e) {
         runId++;
-        return params.after(-1, 'Error during compilation: ' + e.toString());
+        console.log("Error during compilation: " + e.message)
+        return params.after(-1, 'Error during compilation: ' + e.message);
     }
 
     function updateLights() {
@@ -133,8 +134,8 @@ exports.run = function(params) {
         vm.runInContext('var ___step=___main(___lights);', sandbox, options);
     } catch (e) {
         runId++;
-        console.log("Error during initialization: " + e)
-        return params.after(-1, 'Error during initialization: ' + e.toString());
+        console.log("Error during initialization: " + e.message)
+        return params.after(-1, 'Error during initialization: ' + e.message);
     }
     updateLights();
 
@@ -152,8 +153,8 @@ exports.run = function(params) {
             delay = vm.runInContext('___step(___lights);', sandbox, options);
         } catch (e) {
             runId++;
-            console.log("Error in step function: " + e)
-            return params.after(-1, 'Error in step function: ' + e.toString());
+            console.log("Error during step function: " + e.message)
+            return params.after(-1, 'Error in step function: ' + e.message);
         }
         updateLights();
         if (typeof delay !== 'number') {
