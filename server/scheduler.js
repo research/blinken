@@ -124,7 +124,6 @@ function getIdleCode(callback) {
             var gotBlinken = false;
             blinken.prototype.run = function(code) {
                 gotBlinken = true;
-                console.log('Running');
                 callback({code: code.toString(), url: blinken_obj.url, name: blinken_obj.name,
                           title: blinken_obj.title, author: blinken_obj.author});
             }
@@ -135,8 +134,7 @@ function getIdleCode(callback) {
                                  wasm: false
                              }};
             try {
-                console.log('Trying to run:');
-                console.log(code.toString());
+                //console.log('Trying to run:\n' + code.toString());
                 vm.createContext(sandbox);
                 vm.runInContext(code.toString() + '\nwindow.onload();\n',
                                 sandbox, options);
