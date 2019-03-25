@@ -5,15 +5,14 @@
 // Requires:
 //
 //  <script src="https://code.jquery.com/jquery-latest.js"></script>
-//  <script src="https://blinken.org/bulb.js"></script>  
 //
 
 function Blinken(obj) { // {title, author, target}
-    if (typeof obj === "undefined") {
+    if (typeof obj === 'undefined') {
         obj = {};
     }
 
-    if (typeof obj.target === "undefined") {
+    if (typeof obj.target === 'undefined') {
         obj.target = $('body');
     }
 
@@ -40,7 +39,6 @@ function Blinken(obj) { // {title, author, target}
         overflow: 'hidden',
         userSelect: 'none',
         perspective: '2048px',
-        webkitPerspective: '2048px'
     });
     $(scale).css({
         position: 'absolute',
@@ -51,7 +49,6 @@ function Blinken(obj) { // {title, author, target}
         marginLeft: '-256px',
         marginTop: '-256px',
         transformStyle: 'preserve-3d',
-        webkitTransformStyle: 'preserve-3d'
     });
     $(world).css({
         position: 'absolute',
@@ -62,7 +59,6 @@ function Blinken(obj) { // {title, author, target}
         marginLeft: '-256px',
         marginTop: '-256px',
         transformStyle: 'preserve-3d',
-        webkitTransformStyle: 'preserve-3d'
     });
     $(floor).css({
         position: 'absolute',
@@ -71,7 +67,6 @@ function Blinken(obj) { // {title, author, target}
         left: '-128px',
         top: '-128px',
         transformStyle: 'preserve-3d',
-        webkitTransformStyle: 'preserve-3d',
         backgroundColor: 'rgba(200, 200, 200, .5)'
     });
     $(send).text ('Run on Stairs');
@@ -86,7 +81,6 @@ function Blinken(obj) { // {title, author, target}
 
     function transform(sel, t) {
         sel.css('transform', t);
-        sel.css('webkitTransform', t);
     }
     transform($(floor), 'translateZ(-768px)');
 
@@ -105,7 +99,6 @@ function Blinken(obj) { // {title, author, target}
             left: '256px',
             top: '256px',
             transformStyle: 'preserve-3d',
-            webkitTransformStyle: 'preserve-3d',
             position: 'absolute'
         });
         var light = document.createElement('div');
@@ -178,7 +171,7 @@ function Blinken(obj) { // {title, author, target}
     $(view).mouseup(function (e) {
         moving = false;
     });
-    $(view).on("wheel", function(e) {
+    $(view).on('wheel', function(e) {
         if (e.originalEvent.wheelDeltaY) {
             depth += e.originalEvent.wheelDeltaY;
         } else {
@@ -252,7 +245,7 @@ function Blinken(obj) { // {title, author, target}
                 $(send).text(data.message);
                 setTimeout(checkStatus, 500);
             } else if (data.value == 0) {
-                $(send).text(data.message + ".  Run again?");
+                $(send).text(data.message + '.  Run again?');
                 published = false;
                         } else {
                 $(send).text(data.message);
@@ -296,9 +289,11 @@ function Blinken(obj) { // {title, author, target}
     this.stop = execStop;
 }
 
+////////////////////////////////////////////////////////////
 //
 // Class to represent and manipulate a bulb
 //
+
 function Bulb(w,x,y,z) {
     // Reset bulb
     this.clear = function() {
