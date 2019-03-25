@@ -104,20 +104,21 @@ exports.run = function(params) {
     fakeWindow.runnerWindow.protect = function(){};
     fakeWindow.runnerWindow.protect.protect = function(){ return false };
     var WS = require('ws');
-    var script, sandbox = {window : fakeWindow, Bulb : Bulb, WebSocket: WS};
+    var lights = Array(100);
+    const sandbox = {window: fakeWindow, Bulb: Bulb, WebSocket: WS, ___lights: lights};
+    const options = {timeout: 100,
+                     contextCodeGeneration: {
+                         strings: false,
+                         wasm: false
+                     }};
     try {
-        script = vm.createScript('main = ' + params.code);
-        script.runInNewContext(sandbox, {'timeout': 100,
-                                         'contextCodeGeneration': {
-                                             'strings': false,
-                                             'wasm': false
-                                         }});
+        vm.createContext(sandbox);
+        vm.runInContext('___main=' + params.code, sandbox, options);
     } catch (e) {
         runId++;
         return params.after(-1, 'Error during compilation: ' + e.toString());
     }
 
-    var lights = Array(100);
     function updateLights() {
         for (var i = 0; i < lights.length; i++) {
             if (typeof lights[i] !== 'object' || lights[i] instanceof Bulb === false) {
@@ -128,11 +129,11 @@ exports.run = function(params) {
     }
     updateLights();
 
-    var step;
     try {
-        step = sandbox.main(lights);
+        vm.runInContext('var ___step=___main(___lights);', sandbox, options);
     } catch (e) {
         runId++;
+        console.log("Error during initialization: " + e)
         return params.after(-1, 'Error during initialization: ' + e.toString());
     }
     updateLights();
@@ -148,9 +149,10 @@ exports.run = function(params) {
         }
         var delay;
         try {
-            delay = step(lights);
+            delay = vm.runInContext('___step(___lights);', sandbox, options);
         } catch (e) {
             runId++;
+            console.log("Error in step function: " + e)
             return params.after(-1, 'Error in step function: ' + e.toString());
         }
         updateLights();
@@ -162,10 +164,6 @@ exports.run = function(params) {
         }
         setTimeout(runStep, delay);
         return undefined;
-    }
-    if (typeof step !== 'function') {
-        runId++;
-        return params.after(0, 'Completed');
     }
     runStep();
     return undefined;

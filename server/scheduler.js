@@ -83,6 +83,7 @@ function makeToken() {
 }
 
 function runLocalShow(callback) {
+    console.log('Falling back to default idle code')
     fs.readFile(__dirname + '/idle.js', 'utf8', function(err,data) {
         if (err) {
             throw new Error(err);
@@ -91,25 +92,24 @@ function runLocalShow(callback) {
     });
 }
  
-
 function getIdleCode(callback) {
+    // Run a program from the gallery to get the metadata and 'run' function from the Blinken object.
     return https.get('https://blinken.org/gallery/random', function(res) {
         let output = '';
         res.on('data', (chunk) => {
             output += chunk;
         });
         res.on('end', () => {
-            // output is (hopefully) json with code, url, and name members
-            // code is (hopefully) some javascript, but it uses the Blinken object
-            // which is undefined here. So we want to mock up a blinken object
+            // output is (hopefully) JSON with code, url, and name members
+            // code is (hopefully) some JavaScript, but it uses the Blinken object
+            // which is undefined here. So we want to mock up a Blinken object.
             var obj;
             try {
                 obj = JSON.parse(output);
                 var code = obj.code;
             } catch (e) {
-                console.log("JSON parse error: " + e);
-                runLocalShow(callback);
-                return;
+                console.log('JSON parse error: ' + e);
+                return runLocalShow(callback);
             }
             var fakeWindow = {};
             fakeWindow.runnerWindow = {};
@@ -117,28 +117,31 @@ function getIdleCode(callback) {
             fakeWindow.onload = function(){};
             var blinken_obj = {};
             function blinken(obj) { 
-                if (typeof obj !== "undefined") {
+                if (typeof obj !== 'undefined') {
                     blinken_obj = obj;
                 }
             }
             var gotBlinken = false;
-            blinken.prototype.run = function(lights) {
-                console.log('running');
+            blinken.prototype.run = function(code) {
                 gotBlinken = true;
-                callback({code: lights.toString(), url: obj.url, name: obj.name, title: blinken_obj.title, author: blinken_obj.author});
+                console.log('Running');
+                callback({code: code.toString(), url: blinken_obj.url, name: blinken_obj.name,
+                          title: blinken_obj.title, author: blinken_obj.author});
             }
-            var script, sandbox = {window: fakeWindow, Blinken: blinken};
+            const sandbox = {window: fakeWindow, Blinken: blinken};
+            const options = {timeout: 100,
+                             contextCodeGeneration: {
+                                 strings: false,
+                                 wasm: false
+                             }};
             try {
-                console.log('trying to run:');
+                console.log('Trying to run:');
                 console.log(code.toString());
-                script = vm.createScript(code.toString() + '\nwindow.onload();\n');
-                script.runInNewContext(sandbox, {'timeout': 100,
-                                                 'contextCodeGeneration': {
-                                                     'strings': false,
-                                                     'wasm': false
-                                                 }});
+                vm.createContext(sandbox);
+                vm.runInContext(code.toString() + '\nwindow.onload();\n',
+                                sandbox, options);
                 if (!gotBlinken) {
-                    throw new Error("Code didn't create a Blinken object")
+                    throw new Error('Code did not create a Blinken object')
                 }
             } catch (e) {
                 if (e.name === 'SyntaxError') {
@@ -146,12 +149,11 @@ function getIdleCode(callback) {
                     console.log(util.inspect(sandbox));
                 }
                 console.log('Idle error: ' + e.toString());
-                console.log('Falling back to circus')
-                runLocalShow(callback);
+                return runLocalShow(callback);
             }
         });
         res.on('error', function(e) { console.log('Got HTTP error: ' + e.message); });
-    }).on('error', function(e) { console.log('Got GET error: ' + e.message); });
+    });
 }
 
 function saveCode(code) {
@@ -192,7 +194,7 @@ function scheduler() {
             }
         });
     }
-    return getIdleCode(function(idleObj){
+    return getIdleCode( function(idleObj) {
         return runner.run({ // Idle program
             code: idleObj.code,
             url: idleObj.url,

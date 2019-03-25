@@ -9,14 +9,12 @@ var path = require('path');
 var fs = require('fs');
 var runner = require('./runner.js');
 
-
 var ews = require('express-ws')
 var expressWs = ews(express());
 var app = expressWs.app;
 
-
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(logger("combined"));
+app.use(logger('combined'));
 
 // This allows people to connect in on the /stream websocket, and get a continuous stream of frames
 // of the current running show (~5KB/s per stream)
@@ -149,4 +147,4 @@ app.all('/cancel/:token', function(req, res){
 var host = 'localhost'
 var port = 3000
 app.listen(port, host);
-console.log('Listening on ' + host + ":" + port);
+console.log('Listening on ' + host + ':' + port);
