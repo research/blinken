@@ -8,3 +8,9 @@ blinken.org {
     proxy /api/0/random localhost:3001
     proxy /api/0/ localhost:3000 { websocket }
 }
+
+# For ewust's legacy embedded clients :-(
+http://insecure.blinken.org {
+    proxy /api/0/random localhost:3001
+    proxy /api/0/ localhost:3000 { websocket }
+}
