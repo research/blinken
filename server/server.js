@@ -60,7 +60,7 @@ app.get(prefix+'/current', function(req, res){
 app.all(prefix+'/cancel/:token', function(req, res){
     res.header('Access-Control-Allow-Origin', '*');
     if (typeof scheduler.getStatus(req.params.token) === 'undefined') {
-        res.send(404);
+        res.sendStatus(404);
     } else {
         scheduler.cancelJob(req.params.token);
         res.send('');

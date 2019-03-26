@@ -183,7 +183,7 @@ function scheduler() {
         jobs[token].status = {value: 20, message: 'Running'};
         stopTime = Date.now()/1000 + jobs[token].limit;
         saveCode(jobs[token].code);
-        if (jobs[token].title == 'undefined') {
+        if (!jobs[token].title) {
             // TODO: Some gallery shows don't define a title in the
             // Blinken object, but they do have a name in the Reddit
             // post. We used to cache the URLs when retrieving idle
@@ -191,6 +191,7 @@ function scheduler() {
             // mangled URLs in referers, but the code was a huge mess.
             // An alternative would be to correct the older gallery
             // samples, if possible.
+            jobs[token].title = 'Untitled';
         }
         return runner.run({ // User program
             code: jobs[token].code,
