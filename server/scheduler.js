@@ -88,7 +88,7 @@ function runLocalShow(callback) {
         if (err) {
             throw new Error(err);
         }
-        callback({code: data, url: 'local', title: 'Circus'});
+        callback({code: data, title: 'Circus'});
     });
 }
  
