@@ -158,6 +158,15 @@ def js_code(url):
     f.close()
     return buf
 
+def validShow(child):
+    c = child['data']
+    if c['is_self']:
+        return False
+    if c['title'] == 'Drunk Hyperactive Ant' or \
+       c['title'] == 'Christmas Blinken!':
+        return False # program is lost
+    return True
+
 @route('/gallery')
 @route('/gallery/')
 @route('/gallery/<page_s>')
@@ -170,14 +179,12 @@ def index(page_s='0'):
     hit_index = False
     more_pages = False
     items = []
+    h = HTMLParser.HTMLParser()
     print len(obj['data']['children'])
     for child in obj['data']['children']:
-        c = child['data']
-        if c['is_self']:
+        if not validShow(child):
             continue
-        if c['title'] == 'Drunk Hyperactive Ant' or \
-           c['title'] == 'Christmas Blinken!':
-            continue # program is lost
+        c = child['data']
         url = show_url(c['url'])
         idx += 1
         if not(idx in range(page*PER_PAGE, (page+1)*PER_PAGE)):
@@ -188,6 +195,7 @@ def index(page_s='0'):
         c['code_url'] = code_url(c['url'])
         c['show_url'] = url.replace('http://', 'https://')
         c['preview_hash'] = hashlib.sha256(url).hexdigest()
+        c['title'] = h.unescape(c['title'])
         js_code(url) # warm up cache
         items += [c]
 
@@ -197,10 +205,11 @@ def index(page_s='0'):
 def getrandom():
     print 'getrandom req...'
     obj = get_bbbblinken_json()
-    print 'got object'
 
     candidates = []
     for child in obj['data']['children']:
+        if not validShow(child):
+            continue
         c = child['data']
         if c['is_self']:
             continue

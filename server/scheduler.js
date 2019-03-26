@@ -88,14 +88,19 @@ function runLocalShow(callback) {
         if (err) {
             throw new Error(err);
         }
-        callback({code: data, url: 'local', name: 'Circus'});
+        callback({code: data, url: 'local', title: 'Circus'});
     });
 }
  
 function getIdleCode(callback) {
-    // Run a program from the gallery to get the metadata and 'run' function from the Blinken object.
+    // Run a program from the gallery to get the metadata and 'run'
+    // function from the Blinken object.
     return https.get('https://blinken.org/api/0/random', function(res) {
         let output = '';
+        if (res.statusCode != 200) {
+            console.log('Failed to get random show: HTTP ' + res.statusCode + ' (is the gallery running?)')
+            return runLocalShow(callback);
+        }
         res.on('data', (chunk) => {
             output += chunk;
         });
@@ -103,10 +108,9 @@ function getIdleCode(callback) {
             // output is (hopefully) JSON with code, url, and name members
             // code is (hopefully) some JavaScript, but it uses the Blinken object
             // which is undefined here. So we want to mock up a Blinken object.
-            var obj;
             try {
-                obj = JSON.parse(output);
-                var code = obj.code;
+                var gallery_obj = JSON.parse(output);
+                var code = gallery_obj.code;
             } catch (e) {
                 console.log('JSON parse error: ' + e);
                 return runLocalShow(callback);
@@ -116,7 +120,7 @@ function getIdleCode(callback) {
             fakeWindow.runnerWindow.protect = function(){};
             fakeWindow.onload = function(){};
             var blinken_obj = {};
-            function blinken(obj) { 
+            function blinken(obj) {
                 if (typeof obj !== 'undefined') {
                     blinken_obj = obj;
                 }
@@ -124,8 +128,13 @@ function getIdleCode(callback) {
             var gotBlinken = false;
             blinken.prototype.run = function(code) {
                 gotBlinken = true;
-                callback({code: code.toString(), url: blinken_obj.url, name: blinken_obj.name,
-                          title: blinken_obj.title, author: blinken_obj.author});
+                var title = ''
+                if (!title) { title = blinken_obj.title; }
+                if (!title) { title = gallery_obj.title; }
+                if (!title) { title = gallery_obj.name; }
+                if (!title) { title = 'Untitled'; }
+                callback({code: code.toString(), url: blinken_obj.url,
+                          title: title, author: blinken_obj.author});
             }
             const sandbox = {window: fakeWindow, Blinken: blinken};
             const options = {timeout: 100,
@@ -134,7 +143,6 @@ function getIdleCode(callback) {
                                  wasm: false
                              }};
             try {
-                //console.log('Trying to run:\n' + code.toString());
                 vm.createContext(sandbox);
                 vm.runInContext(code.toString() + '\nwindow.onload();\n',
                                 sandbox, options);
@@ -151,14 +159,17 @@ function getIdleCode(callback) {
             }
         });
         res.on('error', function(e) { console.log('Got HTTP error: ' + e.message); });
-    });
+    }).on('error', function(e) { console.log('Got HTTP error: ' + e.message); });
+}
+
+function safeHash(data) {
+    return crypto.createHash('sha256').update(data).digest('hex');
 }
 
 function saveCode(code) {
     var uploadPath = __dirname + '/uploads/';
-    var hash = crypto.createHash('sha256').update(code).digest('hex');
+    var hash = safeHash(code);
     console.log('job hash: ' + hash);
-    console.log(code);
     files = fs.readdirSync(uploadPath);
     if (files.filter(function(x){return x.search(hash)>=0}).length == 0) {
         fs.writeFileSync(uploadPath + '/' + hash + '.js', code);
@@ -174,6 +185,15 @@ function scheduler() {
         jobs[token].status = {value: 20, message: 'Running'};
         stopTime = Date.now()/1000 + jobs[token].limit;
         saveCode(jobs[token].code);
+        if (jobs[token.title] == 'undefined') {
+            // TODO: Some gallery shows don't define a title in the
+            // Blinken object, but they do have a name in the Reddit
+            // post. We used to cache the URLs when retrieving idle
+            // shows from the Gallery and try to match them to the
+            // mangled URLs in referers, but the code was a huge mess.
+            // An alternative would be to correct the older gallery
+            // samples, if possible.
+        }
         return runner.run({ // User program
             code: jobs[token].code,
             url: jobs[token].url,
@@ -196,7 +216,6 @@ function scheduler() {
         return runner.run({ // Idle program
             code: idleObj.code,
             url: idleObj.url,
-            name: idleObj.name,
             title: idleObj.title,
             author: idleObj.author,
             idle: true,
