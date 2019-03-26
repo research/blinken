@@ -125,14 +125,9 @@ function getIdleCode(callback) {
                     blinken_obj = obj;
                 }
             }
-            var gotBlinken = false;
+            var blinkenCode;
             blinken.prototype.run = function(code) {
-                gotBlinken = true;
-                title = blinken_obj.title;
-                if (!title) { title = gallery_obj.title; }
-                if (!title) { title = 'Untitled'; }
-                callback({code: code.toString(), url: gallery_obj.url,
-                          title: title, author: blinken_obj.author});
+                blinkenCode = code.toString();
             }
             const sandbox = {window: fakeWindow, Blinken: blinken};
             const options = {timeout: 100,
@@ -144,9 +139,14 @@ function getIdleCode(callback) {
                 vm.createContext(sandbox);
                 vm.runInContext(code.toString() + '\nwindow.onload();\n',
                                 sandbox, options);
-                if (!gotBlinken) {
+                if (!blinkenCode) {
                     throw new Error('Code did not create a Blinken object')
                 }
+                var title = blinken_obj.title;
+                if (!title) { title = gallery_obj.title; }
+                if (!title) { title = 'Untitled'; }
+                return callback({code: blinkenCode, url: gallery_obj.url,
+                          title: title, author: blinken_obj.author});
             } catch (e) {
                 if (e.name === 'SyntaxError') {
                     console.log('Syntax error: ' + e.stack);
@@ -156,8 +156,14 @@ function getIdleCode(callback) {
                 return runLocalShow(callback);
             }
         });
-        res.on('error', function(e) { console.log('Got HTTP error: ' + e.message); });
-    }).on('error', function(e) { console.log('Got HTTP error: ' + e.message); });
+        res.on('error', function(e) {
+            console.log('Got HTTP error: ' + e.message);
+            return runLocalShow(callback);
+        });
+    }).on('error', function(e) {
+        console.log('Got HTTP error: ' + e.message);
+        return runLocalShow(callback);
+    });
 }
 
 function safeHash(data) {
