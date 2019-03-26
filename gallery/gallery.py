@@ -224,7 +224,7 @@ def getrandom():
     output = {}
     output['code'] = js_code(url)
     output['url'] = url
-    output['name'] = winner['title']
+    output['title'] = winner['title']
     return json.dumps(output)
 
 run(host='localhost', port=3001)

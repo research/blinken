@@ -128,12 +128,10 @@ function getIdleCode(callback) {
             var gotBlinken = false;
             blinken.prototype.run = function(code) {
                 gotBlinken = true;
-                var title = ''
-                if (!title) { title = blinken_obj.title; }
+                title = blinken_obj.title;
                 if (!title) { title = gallery_obj.title; }
-                if (!title) { title = gallery_obj.name; }
                 if (!title) { title = 'Untitled'; }
-                callback({code: code.toString(), url: blinken_obj.url,
+                callback({code: code.toString(), url: gallery_obj.url,
                           title: title, author: blinken_obj.author});
             }
             const sandbox = {window: fakeWindow, Blinken: blinken};
@@ -185,7 +183,7 @@ function scheduler() {
         jobs[token].status = {value: 20, message: 'Running'};
         stopTime = Date.now()/1000 + jobs[token].limit;
         saveCode(jobs[token].code);
-        if (jobs[token.title] == 'undefined') {
+        if (jobs[token].title == 'undefined') {
             // TODO: Some gallery shows don't define a title in the
             // Blinken object, but they do have a name in the Reddit
             // post. We used to cache the URLs when retrieving idle
