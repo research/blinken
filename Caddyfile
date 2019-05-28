@@ -9,6 +9,11 @@ blinken.org {
     proxy /api/0/ localhost:3000 { websocket }
 }
 
+# Redirect from the old hostname
+blinken.eecs.umich.edu {
+    redir https://blinken.org{uri}
+}
+
 # For ewust's legacy embedded clients :-(
 http://insecure.blinken.org {
     proxy /api/0/random localhost:3001

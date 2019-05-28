@@ -39,6 +39,7 @@ function Blinken(obj) { // {title, author, target}
         overflow: 'hidden',
         userSelect: 'none',
         perspective: '2048px',
+        backgroundColor: 'rgb(240, 240, 240)',
     });
     $(scale).css({
         position: 'absolute',
@@ -105,10 +106,11 @@ function Blinken(obj) { // {title, author, target}
         div.appendChild(light);
         $(light).css({
             position: 'absolute',
-            backgroundColor: 'black',
+            backgroundColor: 'rgba(127, 127, 127, 0.5)',
             width: '20px',
             height: '20px',
             borderRadius: '10px',
+	    border: '0.05px solid black',
             marginLeft: '-10px',
             marginTop: '-10px'
         });
@@ -289,6 +291,29 @@ function Blinken(obj) { // {title, author, target}
     this.stop = execStop;
 }
 
+/* accepts parameters
+ * r  Object = {r:x, g:y, b:z}
+ * OR 
+ * r, g, b
+*/
+function RGBtoHSV(th) {
+        r = th.r*255;
+        g = th.g*255;
+        b = th.b*255;
+    var max = Math.max(r, g, b), min = Math.min(r, g, b),
+        d = max - min,
+        h,
+        s = (max === 0 ? 0 : d / max),
+        v = max / 255;
+
+    return {
+        h: h,
+        s: s,
+        v: v
+    };
+}
+
+
 ////////////////////////////////////////////////////////////
 //
 // Class to represent and manipulate a bulb
@@ -369,10 +394,12 @@ function Bulb(w,x,y,z) {
     this.gamma = 0.33;
 
     this.cssColor = function () {
-        return 'rgb(' + Math.round(Math.pow(limit(this.a) * limit(this.r), this.gamma) * 255) + ',' +
-                        Math.round(Math.pow(limit(this.a) * limit(this.g), this.gamma) * 255) + ',' +
-                        Math.round(Math.pow(limit(this.a) * limit(this.b), this.gamma) * 255) + ')';
-    };
+        var hsv = RGBtoHSV(this);       
+        var r = Math.round(Math.pow(limit(this.a) * limit(this.r), this.gamma) * 240+25),
+            g = Math.round(Math.pow(limit(this.a) * limit(this.g), this.gamma) * 240+25),
+            b = Math.round(Math.pow(limit(this.a) * limit(this.b), this.gamma) * 240+25);
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + hsv.v + ')';
+    }; 
 
     function limit(x) {
         return Math.min(1, Math.max(0, x));

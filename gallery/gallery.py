@@ -8,52 +8,87 @@ import HTMLParser
 import os
 import time
 import hashlib
+import re
 
 JSON_FILE = 'cache/bbbblinken.json.last'
+REDDIT_API = 'https://www.reddit.com/r/bbbblinken/top.json?sort=top&t=all&limit=100'
 PER_PAGE=6
 
-def get_cached_json():
-    try:
+def getJSONData():
+    if time.time() - os.path.getmtime(JSON_FILE) >= 60:
+        try:
+            req = urllib2.Request(REDDIT_API, None, { 'User-Agent' : 'Blinken.org/1.0' })
+            data = urllib2.urlopen(req, timeout=2.0).read()
+            obj = json.loads(data)
+            if 'error' not in obj: # got good data, update cache
+                with open(JSON_FILE, 'w') as f:
+                    f.write(data)
+                return obj
+        except Exception as e:
+            print "Reddit API error, falling back to cache:", e
+            os.utime(JSON_FILE, None) 
+    try: # use cache
         with open(JSON_FILE, 'r') as f:
-            obj = json.loads(f.read())
-    except:
-        return {}
-    return obj
+            return json.loads(f.read())
+    except e:
+        print "Error reading cache:", e
+    return {}
 
-def get_bbbblinken_json():
-    diff = time.time() - os.path.getmtime(JSON_FILE)
-    print '%s seconds since last...' % (str(diff))
-    if (diff < 60):
-        return get_cached_json()
+def getGallery():
+    entries = []
+    for child in getJSONData()['data']['children']:
+        c = child['data']
+        if c['is_self']:
+            continue
+        e = getEntry(c)
+        if e:
+            entries += [e]
+    return entries
 
-    try:
-        req = urllib2.Request("https://www.reddit.com/r/bbbblinken/top.json?sort=top&t=all&limit=100", None, { 'User-Agent' : 'Blinken.org/1.0' })
-        f = urllib2.urlopen(req, timeout=2.0)
-    except Exception as e:
-        # This is likely a 429 from reddit. Should update the cached file.
-        os.utime(JSON_FILE, None)
-        print e
-        return get_cached_json()
+def getEntry(o):
+    e = {}
+    e['title'] = o['title']
+    e['author'] = o['author']
+    e['permalink'] = o['permalink']
+    url = o['url']
 
-    buf = f.read()
-    try:
-        obj = json.loads(buf)
-    except:
-        print buf.encode('base64')
+    m = re.search('^https?://(.+)$', url)
+    if not m:
         return None
-    f.close()
+    url = m.group(1)
+    print url
+    
+    # *jsbin.com/[id]/[optional version]
+    # jsfiddle.com/[optional user]/[id]/[optional version]
+    m = re.search('^[a-z0-9\-\.]*jsbin\.com/([A-Za-z0-9]+)(?:/([0-9]+))?', url)
+    if m:
+        print m.group(1), m.group(2)
+    m = re.search('^[a-z0-9\-\.]*(?:jsfiddle\.net|fiddle\.jshell\.net)/([^/]+)/([^/]+)', url)
+    if m:
+        print m.group(1), m.group(2)
+    x = url.split('://')
+    if len(x) < 2 or x[0] not in ['http', 'https']:
+        return None
+    p = x[1].split('/')
+    if len(p) < 2:
+        return None
+    host, path = p[0], p[1:]
+    if host.endswith('jsbin.com'):
+        print path[0]
+    elif host.endswith('jsfiddle.net') or host.endswith('fiddle.jshell.net'):
+        print path[1]
 
-    if 'error' in obj:
-        # load from file cache
-        print 'Freakin reddit...'
-        return get_cached_json()
-    else:
-        # save to file cache
-        f = open(JSON_FILE, 'w')
-        f.write(buf)
-        f.close()
+    print url
+    
+    url = url.replace('wezuzoho', 'torijef') # fix Blazers
+    url = url.replace('joviqivido', 'zanutiy') # fix Standard Sort
+    if e['permalink'] in [
+            '/r/bbbblinken/comments/22nlsp/drunk_hyperactive_ant/',
+            '/r/bbbblinken/comments/1sugj4/christmas_blinken/'
+    ]:
+        return None # program is lost
 
-    return obj
+    return e
 
 def update_url(url):
     url = url.replace('wezuzoho', 'torijef') # fix Blazers
@@ -173,7 +208,7 @@ def validShow(child):
 def index(page_s='0'):
     page = int(page_s)
 
-    obj = get_bbbblinken_json()
+    obj = getJSONData()
 
     idx = -1
     hit_index = False
@@ -204,7 +239,8 @@ def index(page_s='0'):
 @route('/api/0/random')
 def getrandom():
     print 'getrandom req...'
-    obj = get_bbbblinken_json()
+    getGallery()
+    obj = getJSONData()
 
     candidates = []
     for child in obj['data']['children']:
@@ -217,7 +253,6 @@ def getrandom():
  
     winner = random.choice(candidates)
     url = show_url(winner['url'])
-    print url
 
     response.set_header('Content-Type', 'application/javascript')
     
