@@ -12,9 +12,7 @@ The services should be installed through systemd and set to run on boot. To rest
     systemctl restart gallery
     systemctl restart blinken
 
-To view logs, use:
-
-   journalctl
+To view logs, use `journalctl`.
 
 ## Running the Services Manually
 
