@@ -1,0 +1,16 @@
+[Unit]
+Description=Blinken.org gallery service
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=www-data
+WorkingDirectory=/home/jhalderm/blinken/gallery
+ExecStart=/home/jhalderm/blinken/gallery/gallery.py
+ProtectHome=no
+
+[Install]
+WantedBy=multi-user.target
