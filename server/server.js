@@ -17,6 +17,7 @@ const prefix = "/api/0" // path to this service
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(logger('combined'));
+app.set('trust proxy', 'loopback');
 
 // This allows people to connect in on the /stream websocket, and get
 // a continuous stream of frames of the current running show (~5KB/s
@@ -27,6 +28,13 @@ app.ws(prefix+'/stream', function(ws, req) {
   });
   runner.addStream(ws);
   console.log('stream websocket', req._remoteAddress);
+});
+
+// Set IP address on strand boot
+app.get(prefix+'/hello-pi', function(req, res) {
+  runner.setStrandHost(req._remoteAddress);
+    console.log('ip is now:', req._remoteAddress);
+    res.send('👋');
 });
 
 app.post(prefix+'/publish', function(req, res){

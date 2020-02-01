@@ -1,4 +1,5 @@
 var vm = require('vm'),
+    fs = require('fs'),
     util = require('util'),
     dgram = require('dgram'),
     bulb = require('./bulb.js'),
@@ -33,7 +34,7 @@ function StrandControl(host, port) {
             payload = payload.concat(lights[lights.length-1-i].strandBytes(scale));
         }
         var packet = Buffer.from(payload);
-        this.sock.send(packet, 0, packet.length, port, host,
+        this.sock.send(packet, 0, packet.length, this.port, this.host,
                             function(err, b) {
                                 if (err) { console.log('Network error: ' + err); }
                         });
@@ -48,7 +49,22 @@ function StrandControl(host, port) {
         }
     };
 }
-var strand = new StrandControl('141.212.107.126', 1337);
+
+// use stored IP address from strandIpFile
+var strandIpFile = __dirname + '/strand-ip.conf';
+var strandIp = '127.0.0.1';
+try {
+    var strandIp = fs.readFileSync(strandIpFile, 'utf8');
+} catch(e) {
+    console.log(e);
+}
+var strand = new StrandControl(strandIp, 1337);
+
+// dynamically update strand IP and store for restart
+exports.setStrandHost = function(host) {    
+    strand.host = host;
+    fs.writeFileSync(strandIpFile, host);
+}
 
 Bulb.prototype.strandBytes = function(scale) {
     function limit(x) {
