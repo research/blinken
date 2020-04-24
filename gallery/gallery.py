@@ -1,10 +1,10 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from bottle import route, run, response, template
 import json
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 import random
-import HTMLParser
+import html.parser
 import os
 import time
 import hashlib
@@ -17,21 +17,21 @@ PER_PAGE=6
 def getJSONData():
     if time.time() - os.path.getmtime(JSON_FILE) >= 60:
         try:
-            req = urllib2.Request(REDDIT_API, None, { 'User-Agent' : 'Blinken.org/1.0' })
-            data = urllib2.urlopen(req, timeout=2.0).read()
+            req = urllib.request.Request(REDDIT_API, None, { 'User-Agent' : 'Blinken.org/1.0' })
+            data = urllib.request.urlopen(req, timeout=2.0).read()
             obj = json.loads(data)
             if 'error' not in obj: # got good data, update cache
-                with open(JSON_FILE, 'w') as f:
+                with open(JSON_FILE, 'wb') as f:
                     f.write(data)
                 return obj
         except Exception as e:
-            print "Reddit API error, falling back to cache:", e
+            print("Reddit API error, falling back to cache:", e)
             os.utime(JSON_FILE, None) 
     try: # use cache
-        with open(JSON_FILE, 'r') as f:
+        with open(JSON_FILE, 'rb') as f:
             return json.loads(f.read())
     except e:
-        print "Error reading cache:", e
+        print("Error reading cache:", e)
     return {}
 
 def getGallery():
@@ -56,16 +56,16 @@ def getEntry(o):
     if not m:
         return None
     url = m.group(1)
-    print url
+    print(url)
     
     # *jsbin.com/[id]/[optional version]
     # jsfiddle.com/[optional user]/[id]/[optional version]
     m = re.search('^[a-z0-9\-\.]*jsbin\.com/([A-Za-z0-9]+)(?:/([0-9]+))?', url)
     if m:
-        print m.group(1), m.group(2)
+        print(m.group(1), m.group(2))
     m = re.search('^[a-z0-9\-\.]*(?:jsfiddle\.net|fiddle\.jshell\.net)/([^/]+)/([^/]+)', url)
     if m:
-        print m.group(1), m.group(2)
+        print(m.group(1), m.group(2))
     x = url.split('://')
     if len(x) < 2 or x[0] not in ['http', 'https']:
         return None
@@ -74,11 +74,11 @@ def getEntry(o):
         return None
     host, path = p[0], p[1:]
     if host.endswith('jsbin.com'):
-        print path[0]
+        print(path[0])
     elif host.endswith('jsfiddle.net') or host.endswith('fiddle.jshell.net'):
-        print path[1]
+        print(path[1])
 
-    print url
+    print(url)
     
     url = url.replace('wezuzoho', 'torijef') # fix Blazers
     url = url.replace('joviqivido', 'zanutiy') # fix Standard Sort
@@ -136,7 +136,7 @@ def code(hash):
 
 # will call urllib2.urlopen/read 
 def js_code(url):
-    cache_fn = "cache/" + hashlib.sha256(url).hexdigest()
+    cache_fn = "cache/" + hashlib.sha256(url.encode()).hexdigest()
     if os.path.isfile(cache_fn):
         f = open(cache_fn, 'r')
         buf = f.read()
@@ -157,12 +157,12 @@ def js_code(url):
             else:
                 js_url = url + '/js'
 
-        print 'js_url: ' + js_url
+        print('js_url: ' + js_url)
         try:
-            req = urllib2.Request(js_url, None, { 'User-Agent' : 'Mozilla/5.0' })
-            resp = urllib2.urlopen(req)
+            req = urllib.request.Request(js_url, None, { 'User-Agent' : 'Mozilla/5.0' })
+            resp = urllib.request.urlopen(req)
         except Exception as e:
-            print e
+            print(e)
             return None
         buf = resp.read()
 
@@ -172,20 +172,20 @@ def js_code(url):
             return None
         js_url = 'http://jsfiddle.net/%s/embedded/js/' % (path[2])
         try:
-            resp = urllib2.urlopen(js_url, timeout=5.0)
+            resp = urllib.request.urlopen(js_url, timeout=5.0)
         except Exception as e:
-            print e
+            print(e)
             return None
         js_page = resp.read()
         js_start_tag = '<pre class="tCont active">'
         js_start = js_page.index(js_start_tag)
         js_end = js_page.index('</pre>', js_start)
 
-        h = HTMLParser.HTMLParser()
+        h = html.parser.HTMLParser()
         buf = h.unescape(js_page[js_start+len(js_start_tag):js_end])
          
     else:
-        resp = urllib2.urlopen(url)
+        resp = urllib.request.urlopen(url)
         buf = resp.read()
     
     f = open(cache_fn, 'w')
@@ -214,8 +214,8 @@ def index(page_s='0'):
     hit_index = False
     more_pages = False
     items = []
-    h = HTMLParser.HTMLParser()
-    print len(obj['data']['children'])
+    h = html.parser.HTMLParser()
+    print(len(obj['data']['children']))
     for child in obj['data']['children']:
         if not validShow(child):
             continue
@@ -229,7 +229,7 @@ def index(page_s='0'):
         hit_index = True
         c['code_url'] = code_url(c['url'])
         c['show_url'] = url.replace('http://', 'https://')
-        c['preview_hash'] = hashlib.sha256(url).hexdigest()
+        c['preview_hash'] = hashlib.sha256(url.encode()).hexdigest()
         c['title'] = h.unescape(c['title'])
         js_code(url) # warm up cache
         items += [c]
@@ -238,7 +238,7 @@ def index(page_s='0'):
 
 @route('/api/0/random')
 def getrandom():
-    print 'getrandom req...'
+    print('getrandom req...')
     getGallery()
     obj = getJSONData()
 
