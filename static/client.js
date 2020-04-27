@@ -388,8 +388,9 @@ class Bulb {
 
   // Set light color with alpha: rgba(r,g,b,a)
   rgba(r, g, b, a) {
+    this.rgb(r, g, b);    
     this.a = _limit(a);
-    return this.rgb(r, g, b);
+    return this;
   };
 
   // Add color of another bulb to this one
