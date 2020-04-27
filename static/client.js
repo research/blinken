@@ -36,7 +36,7 @@ class Simulator {
 
     this.render(target);
 
-    $(window).unload( () => {
+    $(window).on('beforeunload', () => {
       this.cancelJob(true);
     });
     $(document).ajaxError( (event, jqXHR, ajaxSettings, thrownError) => {

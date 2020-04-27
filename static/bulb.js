@@ -1,1 +1,1 @@
-../server/bulb.js
+// Now included in client.js.
