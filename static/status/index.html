@@ -60,38 +60,38 @@
        </ul>
     </div>
   </div>
-  <script>
-function update_title()
-{
-    $.get('/api/0/current', function(data) {
-        var title = data.title;
-        if (typeof title === 'undefined') {
-            title = data.name;
-        }
-        $('#camtitle')[0].innerHTML = '<a href="'+data.url+'">'+title+'</a>';
-        var secs = Math.round(data.time_left);
-        if (secs < 0)
-            secs = 0;
-        var mins = Math.floor(secs/60);
-        secs = secs % 60;
-        $('#camtime')[0].innerHTML = ''+mins+':'+((secs < 10) ? '0'+secs : secs);
-        setTimeout(update_title, 500);
-    }, 'json');
-}
-update_title();
-  </script>
   <div id="body">
     <div id="container" class="container">
       <div id="titles" class="pull-left" style="margin-left: 21%; margin-top: 23%; width: 200px">
-        <h2 id="camtitle"></h2>
-        <h2 id="camtime"></h2>
+        <h2 id="title"></h2>
+        <h2 id="time"></h2>
       </div>
       <iframe class="live_container" src="live.html"></iframe>
-<!-- Hopefully the webcam will come back some day ...
+     <!-- Hopefully the webcam will come back someday ...
      <div id="webcam_container" class="webcam_container pull-right">
        <iframe src="http://172.99.65.105:32768" width="100%" height="100%" style="border:0;" scrolling="no"></iframe>
      </div> -->
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+    <script>
+function updateTitle() {
+  $.get('https://blinken.org/api/0/current', (data) => {
+    let title = data.title;
+    if (typeof title === 'undefined') {
+      title = data.name;
+    }
+    $('#title')[0].innerHTML = `<a href="${data.url}">${title}</a>`;
+    let secs = Math.round(data.time_left);
+    if (secs < 0) {
+      secs = 0;
+    }
+    let mins = Math.floor(secs/60);
+    secs = secs % 60;
+    $('#time')[0].innerHTML = `${mins}:${(secs < 10) ? ('0'+secs) : secs}`;
+    setTimeout(updateTitle, 500);
+  }, 'json');
+}
+$(updateTitle);
+    </script>
   </body>
 </html>

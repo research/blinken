@@ -3,48 +3,20 @@
     <script src='https://code.jquery.com/jquery-latest.js'></script>
     <script src='https://blinken.org/client.js'></script>
     <style>#title, #time, button { display: none; }</style>
+  </head>
+  <body>
+    <div id=title></div>
+    <div id=time></div>
     <script>
-
-function updateTitle()
-{
-  $.get('https://blinken.org/api/0/current', function(data) {
-    let title = data.title;
-    if (typeof title === 'undefined') {
-      title = data.name;
-    }
-    $('#title')[0].innerHTML = '<a href="'+data.url+'">'+title+'</a>';
-
-    let secs = Math.round(data.time_left);
-    if (secs < 0) {
-      secs = 0;
-    }
-    let mins = Math.floor(secs/60);
-    secs = secs % 60;
-    $('#time')[0].innerHTML = ''+mins+':'+((secs < 10) ? '0'+secs : secs);
-  }, 'json');
-}
-
-function run_lights(lights) {
-  return () => {
-    // update lights with latest data
-    for (let i=0; i<lights.length; i++) {
-      const bulb = latest[i];
-      lights[i].rgba(bulb.r, bulb.g, bulb.b, bulb.a);
-    }
-    return 10;
-  };
-}
-
-const latest = Array(100);
-
-window.onload = () => {
+$(function() {
+  const latest = Array(100);
   for (let i=0; i<latest.length; i++) {
     latest[i] = {a:0, r:0, g:0, b:0};
   }
   const ws = new WebSocket('wss://blinken.org/api/0/stream');
   ws.binaryType = 'arraybuffer';
-  ws.onmessage = (evt) => {
-    const data = new Uint8Array(evt.data);
+  ws.onmessage = (e) => {
+    const data = new Uint8Array(e.data);
     for (let i=0; i<100; i++) {
       latest[99-i].a = data[i*4]/255;
       latest[99-i].r = data[i*4+1]/15;
@@ -53,13 +25,17 @@ window.onload = () => {
     }
   }
   const b = new Blinken();
-  b.run(run_lights);
-};
- 
+  b.run( () => {
+    return (lights) => {
+      // update lights with latest data
+      for (let i=0; i<lights.length; i++) {
+        const u = latest[i];
+        lights[i].rgba(u.r, u.g, u.b, u.a);
+      }
+      return 100;
+    };
+  });
+});
     </script>
-  </head>
-  <body>
-    <div id=title></div>
-    <div id=time></div>
   </body>
 </html>
