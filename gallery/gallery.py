@@ -132,7 +132,7 @@ def code(hash):
     if os.path.isfile(cache_fn):
         with open(cache_fn, 'r') as f:
             buf = f.read()
-        return '<html><script src="https://code.jquery.com/jquery-latest.js"></script><script src="https://blinken.org/client.js"></script></head><body><script>' + buf + '</script></body></html>'
+        return '<html><script src="https://blinken.org/client.js"></script></head><body><script>' + buf + '</script></body></html>'
 
 # will call urllib2.urlopen/read 
 def js_code(url):

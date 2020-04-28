@@ -12,7 +12,7 @@ const app = expressWs.app;
 
 const prefix = '/api/0'; // path to this service
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser());
 app.use(logger('combined'));
 app.set('trust proxy', 'loopback');
 
@@ -34,8 +34,19 @@ app.get(prefix+'/hello-pi', function(req, res) {
   res.send('👋');
 });
 
+// CORS preflight to allow /publish to use a JSON body
+app.options(prefix+'/publish', function(req, res) {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  res.send(200);
+});
+
 app.post(prefix+'/publish', function(req, res) {
   res.header('Access-Control-Allow-Origin', '*');
+  if (typeof req.body.code === 'undefined') {
+    res.send(400);
+    return;
+  }
   const token = scheduler.makeJob(
       req.body.code, req.body.url, req.body.title, req.body.author);
   console.log('published from: ' + req.body.url);

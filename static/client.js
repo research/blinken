@@ -2,11 +2,6 @@
 // Blinken simulator (jhalderm 2013-12)
 //
 
-// Requires:
-//
-//  <script src="https://code.jquery.com/jquery-latest.js"></script>
-//
-
 class Blinken {
   constructor(obj) { // {title, author}
     if (typeof obj === 'undefined') {
@@ -14,7 +9,7 @@ class Blinken {
     }
     this.title = obj.title;
     this.author = obj.author;
-    this.simulator = new Simulator(this, $('body'));
+    this.simulator = new Simulator(this, document.body);
   }
 
   run(code) {
@@ -36,12 +31,9 @@ class Simulator {
 
     this.render(target);
 
-    $(window).on('beforeunload', () => {
+    window.onbeforeunload = () => {
       this.cancelJob(true);
-    });
-    $(document).ajaxError( (event, jqXHR, ajaxSettings, thrownError) => {
-      $(this.send).text('Ajax Fail: ' + thrownError);
-    });
+    };
   }
 
   render(target) {
@@ -51,66 +43,52 @@ class Simulator {
     const world = document.createElement('div');
     const floor = document.createElement('div');
     const send = document.createElement('button');
-    this.send = send;
     view.appendChild(scale);
     scale.appendChild(world);
     world.appendChild(floor);
-    target.append(view);
     view.appendChild(send);
-    $(view).css({
-      position: 'absolute',
-      left: '0',
-      right: '0',
-      bottom: '0',
-      top: '0',
-      overflow: 'hidden',
-      userSelect: 'none',
-      perspective: '2048px',
-      backgroundColor: 'rgb(240, 240, 240)',
-    });
-    $(scale).css({
-      position: 'absolute',
-      width: '512px',
-      height: '512px',
-      left: '50%',
-      top: '50%',
-      marginLeft: '-256px',
-      marginTop: '-256px',
-      transformStyle: 'preserve-3d',
-    });
-    $(world).css({
-      position: 'absolute',
-      width: '512px',
-      height: '512px',
-      left: '50%',
-      top: '50%',
-      marginLeft: '-256px',
-      marginTop: '-256px',
-      transformStyle: 'preserve-3d',
-    });
-    $(floor).css({
-      position: 'absolute',
-      width: '768px',
-      height: '768px',
-      left: '-128px',
-      top: '-128px',
-      transformStyle: 'preserve-3d',
-      backgroundColor: 'rgba(200, 200, 200, .5)',
-    });
-    $(send).text('Run on Stairs');
-    $(send).css({
-      marginTop: '10px',
-      marginLeft: '10px',
-      padding: '5px 10px',
-      fontFamily: 'Helvetica, Arial, FreeSans, sans-serif',
-      fontSize: '15px',
-    });
-    send.disabled = true;
 
-    const transform = (sel, t) => {
-      sel.css('transform', t);
-    };
-    transform($(floor), 'translateZ(-768px)');
+    view.style.cssText = `
+      position: absolute;
+      left: 0; right: 0; bottom: 0; top: 0;
+      overflow: hidden;
+      user-select: none;
+      perspective: 2048px;
+      background-color: rgb(240, 240, 240);
+    `;
+    scale.style.cssText = `
+      position: absolute;
+      width: 512px; height: 512px;
+      left: 50%; top: 50%;
+      margin-left: -256px; margin-top: -256px;
+      transform-style: preserve-3d;
+    `;
+    world.style.cssText = `
+      position: absolute;
+      width: 512px; height: 512px;
+      left: 50%; top: 50%;
+      margin-left: -256px; margin-top: -256px;
+      transform-style: preserve-3d;
+    `;
+    floor.style.cssText = `
+      position: absolute;
+      width: 768px; height: 768px;
+      left: -128px; top: -128px;
+      transform-style: preserve-3d;
+      background-color: rgba(200, 200, 200, .5);
+      transform: translateZ(-768px);
+    `;
+    send.style.cssText = `
+      margin-top: 10px;
+      margin-left: 10px;
+      padding: 5px 10px;
+      font-family: Helvetica, Arial, FreeSans, sans-serif;
+      font-size: 15px;
+    `;
+    send.innerText = 'Run on Stairs';
+    send.disabled = true;
+    target.append(view);
+    this.send = send;
 
     // Let there be lights
     const createLight = (n) => {
@@ -118,29 +96,24 @@ class Simulator {
       const x = Math.sin(n / 100 * 6 * Math.PI) * 256;
       const y = Math.cos(n / 100 * 6 * Math.PI) * 256;
       const z = (n - 50) * 15;
-      transform($(div),
-          'translateX( ' + x.toFixed(4) + 'px ) ' +
-                'translateY( ' + y.toFixed(4) + 'px ) ' +
-                'translateZ( ' + z.toFixed(4) + 'px )');
+      div.style.cssText = `
+        left: 256px; top: 256px;
+        transform-style: preserve-3d;
+        position: absolute;
+        transform:
+          translate3d(${x.toFixed(4)}px,${y.toFixed(4)}px,${z.toFixed(4)}px);
+      `;
       world.appendChild(div);
-      $(div).css({
-        left: '256px',
-        top: '256px',
-        transformStyle: 'preserve-3d',
-        position: 'absolute',
-      });
       const light = document.createElement('div');
+      light.style.cssText = `
+        position: absolute;
+        background-color: rgba(127, 127, 127, 0.5);
+        width: 20px; height: 20px;
+        border-radius: 10px;
+        border: 0.05px solid black;
+        margin-left: -10px; margin-top: -10px;
+      `;
       div.appendChild(light);
-      $(light).css({
-        position: 'absolute',
-        backgroundColor: 'rgba(127, 127, 127, 0.5)',
-        width: '20px',
-        height: '20px',
-        borderRadius: '10px',
-        border: '0.05px solid black',
-        marginLeft: '-10px',
-        marginTop: '-10px',
-      });
       return light;
     };
     this.objects = [];
@@ -150,28 +123,30 @@ class Simulator {
 
     // Scale world to window
     const setScale = () => {
-      const s = $(view).height() / (4 * $(world).height());
-      transform($(scale),
-          'scale(' + s.toFixed(4) + ',' + s.toFixed(4) + ')');
+      const s = view.clientHeight / (4 * world.clientHeight);
+      scale.style.transform =
+        `scale(${s.toFixed(4)}, ${s.toFixed(4)})`;
     };
     setScale();
-    $(window).resize( () => {
+    window.onresize = () => {
       setScale();
-    } );
+    };
 
     // Position the world
     let worldXAngle = 90;
     let worldZAngle = 0;
     let depth = 0;
     const updateView = () => {
-      transform($(world),
-          'translateZ( ' + depth.toFixed(4) + 'px ) ' +
-                 'rotateX(' + worldXAngle.toFixed(4) + 'deg) ' +
-                 'rotateZ( ' + worldZAngle.toFixed(4) + 'deg)');
+      world.style.transform = `
+        translateZ(${depth.toFixed(4)}px)
+        rotateX(${worldXAngle.toFixed(4)}deg)
+        rotateZ(${worldZAngle.toFixed(4)}deg)
+      `;
       for (let i = 0; i < 100; i++) {
-        transform($(this.objects[i]),
-            'rotateZ( ' + (-worldZAngle).toFixed(4) + 'deg) ' +
-                   'rotateX( ' + (-worldXAngle).toFixed(4) + 'deg)');
+        this.objects[i].style.transform = `
+          rotateZ(${(-worldZAngle).toFixed(4)}deg)
+          rotateX(${(-worldXAngle).toFixed(4)}deg)
+        `;
       }
     };
     updateView();
@@ -182,7 +157,7 @@ class Simulator {
     let startXAngle = 0;
     let startZAngle = 0;
     let moving = false;
-    $(view).mousedown( (e) => {
+    view.onmousedown = (e) => {
       if (e.which == 1) {
         startX = e.pageX;
         startY = e.pageY;
@@ -190,36 +165,35 @@ class Simulator {
         startZAngle = worldZAngle;
         moving = true;
       }
-    });
-    $(view).mousemove( (e) => {
+    };
+    view.onmousemove = (e) => {
       if (moving && e.which == 1) {
         worldZAngle = startZAngle -
-          (((e.pageX - startX) / $(view).width())) * 180;
+          (((e.pageX - startX) / view.clientWidth)) * 180;
         worldXAngle = startXAngle -
-          (((e.pageY - startY) / $(view).height())) * 180;
+          (((e.pageY - startY) / view.clientHeight)) * 180;
         worldXAngle = Math.max(Math.min(worldXAngle, 180), 0);
         updateView();
       }
-    });
-    $(view).mouseup( (e) => {
+    };
+    view.onmouseup = (e) => {
       moving = false;
-    });
-    $(view).on('wheel', (e) => {
+    };
+    view.onwheel = (e) => {
       if (e.originalEvent.wheelDeltaY) {
         depth += e.originalEvent.wheelDeltaY;
       } else {
         depth -= e.originalEvent.deltaY * 15;
       }
       updateView();
-    });
+    };
   }
 
   execStart(code) {
     this.runId++;
-    $(this.send).click( () => {
+    this.send.onclick = () => {
       this.publish(code);
-    } );
-
+    };
     const myId = this.runId;
     const lights = Array(100);
     const updateLights = () => {
@@ -237,7 +211,7 @@ class Simulator {
     try {
       step = code(lights);
     } catch (e) {
-      $(this.send).text('Error (see console)');
+      this.send.innerText = 'Error (see console)';
       throw e;
     }
     updateLights();
@@ -251,7 +225,7 @@ class Simulator {
       try {
         delay = step(lights);
       } catch (e) {
-        $(this.send).text('Error (see console)');
+        this.send.innerText = 'Error (see console)';
         throw e;
       }
       updateLights();
@@ -275,48 +249,71 @@ class Simulator {
     this.runId++;
   }
 
+  _ajaxHelper(method, url, callback, data) {
+    const request = new XMLHttpRequest();
+    request.open(method, url, true);
+    if (typeof data === 'object') {
+      request.setRequestHeader('Content-type', 'application/json');
+      data = JSON.stringify(data);
+    } else if (typeof data === 'undefined') {
+      data = null;
+    }
+    request.onload = () => {
+      if (request.status >= 200 && request.status < 400) {
+        if (typeof callback === 'function') {
+          callback(request.response);
+        }
+      } else {
+        this.send.innerText = 'Server error: ' + request.status;
+      }
+    };
+    request.onerror = () => {
+      this.send.innerText = 'AJAX failure';
+    };
+    request.send(data);
+  }
+
   checkStatus() {
-    $.get(this.apiPath + '/status/' + this.token, (data) => {
-      if (data.value > 0) {
-        $(this.send).text(data.message);
+    this._ajaxHelper('GET', this.apiPath + '/status/' + this.token, (data) => {
+      const res = JSON.parse(data);
+      if (res.value > 0) {
+        this.send.innerText = res.message;
         setTimeout( () => {
           this.checkStatus();
         }, 500);
-      } else if (data.value == 0) {
-        $(this.send).text(data.message + '.  Run again?');
+      } else if (res.value == 0) {
+        this.send.innerText = res.message + '.  Run again?';
         this.published = false;
       } else {
-        $(this.send).text(data.message);
+        this.send.innerText = res.message;
         this.published = false;
       }
-    }, 'json');
+    });
   }
 
   publishJob(code) {
     this.published = true;
-    $(this.send).text('Sending');
-    $.post(this.apiPath + '/publish',
-        {
-          code: code.toString(),
-          url: document.location.toString(),
-          title: this.blinken.title, author: this.blinken.author,
-        }, (data) => {
-          $(this.send).text('Sent');
-          this.token = data;
-          setTimeout(() => {
-            this.checkStatus();
-          }, 100);
-        },
-    );
+    this.send.innerText = 'Sending';
+    this._ajaxHelper('POST', this.apiPath + '/publish', (data) => {
+      this.send.innerText = 'Sent';
+      this.token = data;
+      setTimeout(() => {
+        this.checkStatus();
+      }, 50);
+    }, {
+      code: code.toString(),
+      url: document.location.toString(),
+      title: this.blinken.title, author: this.blinken.author,
+    });
   }
 
   cancelJob(sync) {
     if (typeof this.token !== 'undefined') {
-      $(this.send).text('Canceling');
+      this.send.innerText = 'Canceling';
       if (sync) {
         (new Image(0, 0)).src = this.apiPath + '/cancel/' + this.token;
       } else {
-        $.post(this.apiPath + '/cancel/' + this.token);
+        this._ajaxHelper('POST', this.apiPath + '/cancel/' + this.token);
       }
     }
   }
@@ -396,7 +393,7 @@ class Bulb {
       this.a = bulb.a;
     }
   };
-  
+
   // Add color of another bulb to this one
   add(bulb) {
     if (typeof bulb === 'object' && bulb instanceof Bulb) {
