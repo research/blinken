@@ -4,6 +4,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap-responsive.min.css" rel="stylesheet"/>
   <link href="/css/local.css" rel="stylesheet"/>
   <title>BBB Blinken Bulbs</title>
+  <meta name="viewport" content="width=device-width, initial-scale=0.85">
 </head>
 <body style="background-color: #f5f5f5">
   <div class="navbar navbar-static-top navbar-inverse">
@@ -51,10 +52,7 @@ exports Blinken and Bulb objects. You can instantiate it using the <code>new</co
 constructor, giving it an object that contains a title and who wrote this show:
 </p>
 
-<div class="indent" style="width:400px">
-<pre><b>const b = new Blinken({title: "My Title",
-                       author: "My Name"});</b></pre>
-</div>
+<pre><b>const b = new Blinken({title: "My Title", author: "My Name"});</b></pre>
 
 <p>
 This object has a <code>run()</code> method, which takes as an argument an

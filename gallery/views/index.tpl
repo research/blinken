@@ -4,6 +4,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap-responsive.min.css" rel="stylesheet"/>
   <link href="/css/local.css" rel="stylesheet"/>
   <title>BBB Blinken Bulbs - Gallery</title>
+  <meta name="viewport" content="width=device-width, initial-scale=0.85">
   <style>
 iframe.preview {
     height: 500px;
