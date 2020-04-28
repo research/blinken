@@ -1,21 +1,18 @@
 /** Represents and manipulates a bulb **/
 class Bulb {
   /** Create a Bulb:
-     new Bulb();
-     new Bulb(existingBulb);
-     new Bulb(r,g,b);
-     new Bulb(r,g,b,a); **/
+      new Bulb();
+      new Bulb(existingBulb);
+      new Bulb(r,g,b);
+      new Bulb(r,g,b,a); **/
   constructor(w, x, y, z) {
-    this.clear();
     this.gamma = 0.33;
+    this.clear();
     if (typeof w === 'object' && w instanceof Bulb &&
         typeof x === 'undefined' &&
         typeof y === 'undefined' &&
         typeof z === 'undefined') {
-      this.r = _limit(w.r);
-      this.g = _limit(w.g);
-      this.b = _limit(w.b);
-      this.a = _limit(w.a);
+      this.copy(w);
     } else if (typeof w === 'number' &&
                typeof x === 'number' &&
                typeof y === 'number') {
@@ -30,12 +27,11 @@ class Bulb {
 
   // Reset bulb
   clear() {
-    this.r = this.g = this.b = 0;
-    this.a = 1;
+    this.r = 0; this.g = 0; this.b = 0; this.a = 1;
   };
 
   // You can set color channels and overall brightness ("alpha") directly.
-  // Range is 0-1:
+  // Range is 0-1, e.g.:
   //   this.r = 0;
   //   this.g = 0;
   //   this.b = 0;
@@ -43,25 +39,36 @@ class Bulb {
 
   // Set light color: rgb(r,g,b)
   rgb(r, g, b) {
-    this.r = _limit(r);
-    this.g = _limit(g);
-    this.b = _limit(b);
-    this.a = 1;
-    return this;
+    return this.rgba(r, g, b, 1);
   };
 
   // Set light color with alpha: rgba(r,g,b,a)
   rgba(r, g, b, a) {
+    this.r = _limit(r);
+    this.g = _limit(g);
+    this.b = _limit(b);
     this.a = _limit(a);
-    return this.rgb(r, g, b);
+    return this;
+  };
+
+  // Set to the state of another bulb
+  copy(bulb) {
+    if (typeof bulb === 'object' && bulb instanceof Bulb) {
+      this.r = bulb.r;
+      this.g = bulb.g;
+      this.b = bulb.b;
+      this.a = bulb.a;
+    }
   };
 
   // Add color of another bulb to this one
   add(bulb) {
-    this.r = _limit(this.r + bulb.r);
-    this.g = _limit(this.g + bulb.g);
-    this.b = _limit(this.b + bulb.b);
-    this.a = _limit(this.a + bulb.a);
+    if (typeof bulb === 'object' && bulb instanceof Bulb) {
+      this.r = _limit(this.r + bulb.r);
+      this.g = _limit(this.g + bulb.g);
+      this.b = _limit(this.b + bulb.b);
+      this.a = _limit(this.a + bulb.a);
+    }
     return this;
   };
 
@@ -90,7 +97,6 @@ class Bulb {
   white() {
     this.r = 1; this.g = 1; this.b = 1; return this;
   };
-
 
   // Preview color for the website
   cssColor() {
