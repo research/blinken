@@ -1,6 +1,5 @@
 <html>
   <head>
-    <script src='https://code.jquery.com/jquery-latest.js'></script>
     <script src='https://blinken.org/client.js'></script>
     <style>#title, #time, button { display: none; }</style>
   </head>
@@ -8,7 +7,7 @@
     <div id=title></div>
     <div id=time></div>
     <script>
-$(function() {
+(function() {
   const latest = Array(100);
   for (let i=0; i<latest.length; i++) {
     latest[i] = {a:0, r:0, g:0, b:0};
@@ -35,7 +34,7 @@ $(function() {
       return 100;
     };
   });
-});
+}());
     </script>
   </body>
 </html>
