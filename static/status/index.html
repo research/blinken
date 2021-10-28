@@ -62,7 +62,8 @@
   <div id="body">
     <div id="container" class="container">
       <div id="titles" class="pull-left" style="margin-left: 21%; margin-top: 23%; width: 200px">
-        <h2 id="title"></h2>
+        <h2><a id="link"><span id="title"></span></a></h2>
+        <h3 id="author"></h3>
         <h2 id="time"></h2>
       </div>
       <iframe class="live_container" src="live.html"></iframe>
@@ -85,8 +86,20 @@ function updateTitle() {
       if (typeof title === 'undefined') {
         title = data.name;
       }
-      document.getElementById('title').innerHTML =
-        `<a href="${data.url}">${title}</a>`;
+      document.getElementById('title').innerText = title;
+      let author = data.author;
+      if (typeof author === 'undefined') {
+        author = '';
+      } else {
+        author = 'By ' + author;
+      }
+      document.getElementById('author').innerText = author;
+      let url = data.url;
+      if (typeof url === 'undefined') {
+        url = '';
+      }      
+      document.getElementById('link').href = url;
+
       let secs = Math.round(data.time_left);
       if (secs < 0) {
         secs = 0;
