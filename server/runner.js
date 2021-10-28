@@ -28,9 +28,11 @@ function StrandControl(host, port) {
   this.streams = [];
   this.update = function(lights) {
     payload = [];
+    ws2812payload = [];
     const scale = getBrightnessScale(lights);
     for (let i=0; i < lights.length; i++) {
       payload = payload.concat(lights[lights.length-1-i].strandBytes(scale));
+      ws2812payload = payload.concat(lights[lights.length-1-i].strandBytesWs2812(scale));
     }
     const packet = Buffer.from(payload);
     this.sock.send(packet, 0, packet.length, this.port, this.host,
@@ -39,9 +41,10 @@ function StrandControl(host, port) {
             console.log('Network error: ' + err);
           }
         });
+    const ws2812packet = Buffer.from(payload);
     for (let i=0; i<this.streams.length; i++) {
       try {
-        this.streams[i].send(packet);
+        this.streams[i].send(ws2812packet);
       } catch (ex) {
         // remove this stream
         this.streams.splice(i, 1);
@@ -67,6 +70,7 @@ exports.setStrandHost = function(host) {
   fs.writeFileSync(strandIpFile, host);
 };
 
+// Pi strand is 8-bit alpha, 12-bit rgb (4 bit each color)
 Bulb.prototype.strandBytes = function(scale) {
   function limit(x) {
     return Math.min(1, Math.max(0, x));
@@ -77,6 +81,19 @@ Bulb.prototype.strandBytes = function(scale) {
     Math.round(limit(this.r)*15),
     Math.round(limit(this.g)*15),
     Math.round(limit(this.b)*15)];
+};
+
+// WS2812 has 24-bit rgb (8 bit each color), no alpha
+Bulb.prototype.strandBytesWs2812 = function(scale) {
+    function limit(x) {
+        return Math.min(1, Math.max(0,x));
+    }
+    //scale = scale*limit(this.a);
+    scale = limit(this.a);
+    return [0,   // Could delete, but sending 32-bits is nice for clients
+        Math.round(limit(this.r*scale)*255),
+        Math.round(limit(this.g*scale)*255),
+        Math.round(limit(this.b*scale)*255)];
 };
 
 let currentParams = {};
