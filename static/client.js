@@ -55,6 +55,7 @@ class Simulator {
       user-select: none;
       perspective: 2048px;
       background-color: rgb(240, 240, 240);
+      cursor: grab;
     `;
     scale.style.cssText = `
       position: absolute;
