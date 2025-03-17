@@ -95,9 +95,9 @@ iframe.reddit {
 <div class="blinken">
 <center>
  <div>
-   <span>
+   <!--<span>
      <iframe class="reddit" src="https://www.reddit.com/static/button/button1.html?width=120&url=https://reddit.com{{item['permalink']}}&newwindow=1"></iframe>
-   </span>
+   </span>-->
    <div>
      <h4><a href="https://www.reddit.com{{item['permalink']}}">{{item['title']}}</a></h4>
      (<a href="https://www.reddit.com{{item['permalink']}}">comments</a>) (<a href="{{item['code_url']}}">code</a>)

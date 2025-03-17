@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 from bottle import route, run, response, template
+import sys
 import json
 import urllib.request, urllib.parse, urllib.error
 import urllib.request, urllib.error, urllib.parse
 import random
+import html
 import html.parser
 import os
 import time
@@ -100,7 +102,7 @@ def show_url(url):
     if url.startswith('https://output.jsbin.com'):
         url = url.replace('//output.', '//')
 
-    if url.startswith('http://jsbin.com/'):
+    if url.startswith('http://jsbin.com/') or url.startswith('https://jsbin.com/'):
         if '/edit' in url:
             url = url[0:url.index('/edit')]
         if url.endswith('/show'):
@@ -109,19 +111,19 @@ def show_url(url):
         if not(url.endswith('/')):
             url += '/'
         return url + 'embed?output'
-    elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/')) and not((url.endswith('/show/') or url.endswith('/show'))):
+    elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/') or url.startswith('https://fiddle.jshell.net/') or url.startswith('https://jsfiddle.net/')) and not((url.endswith('/show/') or url.endswith('/show'))):
         return url + '/show/'
     else:
         return url
 
 def code_url(url):
     url = update_url(url)
-    if url.startswith('http://output.jsbin.com'):
+    if url.startswith('http://output.jsbin.com') or url.startswith('https://output.jsbin.com'):
         url = url.replace('//output.', '//')
 
-    if url.startswith('http://jsbin.com/') and not(url.endswith('/edit')):
+    if (url.startswith('http://jsbin.com/') or url.startswith('https://jsbin.com/')) and not url.endswith('/edit'):
         return url.rstrip('/') + '/edit'
-    elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/')) and (url.endswith('/show') or url.endswith('/show/')):
+    elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/') or url.startswith('https://fiddle.jshell.net/') or url.startswith('https://jsfiddle.net/')) and (url.endswith('/show') or url.endswith('/show/')):
         return url.replace('/show', '')
     else:
         return url
@@ -132,22 +134,24 @@ def code(hash):
     if os.path.isfile(cache_fn):
         with open(cache_fn, 'r') as f:
             buf = f.read()
-        return '<html><script src="https://blinken.org/client.js"></script></head><body><script>' + buf + '</script></body></html>'
+            return '<html><script src="https://blinken.org/client.js"></script></head><body><script>' + buf + '</script></body></html>'
 
 # will call urllib2.urlopen/read 
 def js_code(url):
     cache_fn = "cache/" + hashlib.sha256(url.encode()).hexdigest()
     if os.path.isfile(cache_fn):
-        f = open(cache_fn, 'r')
-        buf = f.read()
-        f.close()
-        return buf        
+          f = open(cache_fn, 'r')
+          buf = f.read()
+          f.close()
+          return buf
 
-    if url.startswith('http://output.jsbin.com'):
-        url = url.replace('//output.', '//')
+    print("getting code for",url)
+      
+    if url.startswith('http://output.jsbin.com') or url.startswith('https://output.jsbin.com'):
+          url = url.replace('//output.', '//')
 
     # http://jsbin.com/oWOfadIM/73/edit?html,js,output -> http://jsbin.com/oWOfadIM/73/js
-    if url.startswith('http://jsbin.com/'):
+    if url.startswith('http://jsbin.com/') or url.startswith('https://jsbin.com/'):
         url = url.replace('http://', 'https://')
         if '/show' in url or '/edit' in url or '/embed' in url:
             js_url = url[0:url.rindex('/')] + '/js'
@@ -166,11 +170,11 @@ def js_code(url):
             return None
         buf = resp.read()
 
-    elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/')):
+    elif (url.startswith('http://fiddle.jshell.net/') or url.startswith('http://jsfiddle.net/') or url.startswith('https://fiddle.jshell.net/') or url.startswith('https://jsfiddle.net/')):
         path = url[8:].split('/')
         if len(path) < 2:
             return None
-        js_url = 'http://jsfiddle.net/%s/embedded/js/' % (path[2])
+        js_url = 'https://jsfiddle.net/%s/embedded/js/' % (path[2])
         try:
             resp = urllib.request.urlopen(js_url, timeout=5.0)
         except Exception as e:
@@ -181,14 +185,14 @@ def js_code(url):
         js_start = js_page.index(js_start_tag)
         js_end = js_page.index('</pre>', js_start)
 
-        h = html.parser.HTMLParser()
-        buf = h.unescape(js_page[js_start+len(js_start_tag):js_end])
+        buf = html.unescape(js_page[js_start+len(js_start_tag):js_end])
          
     else:
         resp = urllib.request.urlopen(url)
         buf = resp.read()
-    
-    f = open(cache_fn, 'w')
+
+    print(f"writing {cache_fn}", file=sys.stderr)
+    f = open(cache_fn, 'wb')
     f.write(buf)
     f.close()
     return buf
@@ -230,7 +234,7 @@ def index(page_s='0'):
         c['code_url'] = code_url(c['url'])
         c['show_url'] = url.replace('http://', 'https://')
         c['preview_hash'] = hashlib.sha256(url.encode()).hexdigest()
-        c['title'] = h.unescape(c['title'])
+        c['title'] = html.unescape(c['title'])
         js_code(url) # warm up cache
         items += [c]
 
