@@ -26,7 +26,7 @@ def getPosts():
 
     Returns: list of dicts with the fields shown below
     """
-    if time.time() - os.path.getmtime(JSON_FILE) < 300:        
+    if time.time() - os.path.getmtime(JSON_FILE) > 300:        
         try:
             print("Getting data from reddit", file=sys.stderr)
             posts=reddit.subreddit("bbbblinken").new()
