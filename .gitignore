@@ -6,3 +6,4 @@ strand-ip.conf
 gallery/cache/*
 server/uploads/*
 nohup.out
+praw.ini

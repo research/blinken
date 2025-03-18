@@ -100,10 +100,10 @@ iframe.reddit {
    </span>-->
    <div>
      <h4><a href="https://www.reddit.com{{item['permalink']}}">{{item['title']}}</a></h4>
-     (<a href="https://www.reddit.com{{item['permalink']}}">comments</a>) (<a href="{{item['code_url']}}">code</a>)
+     (<a href="https://www.reddit.com{{item['permalink']}}">comments</a>) (<a href="{{item['base_url']}}">code</a>)
    </div>
  </div>
- <iframe class="preview" sandbox="allow-scripts allow-same-origin" src="/gallery/preview/{{item['preview_hash']}}"></iframe>
+ <iframe class="preview" sandbox="allow-scripts allow-same-origin" src="/gallery/preview/{{item['cache_key']}}"></iframe>
 </center></div>
 %end
 
