@@ -27,10 +27,10 @@ app.ws(prefix+'/stream', function(ws, req) {
   console.log('stream websocket', req._remoteAddress);
 });
 
-// Set IP address on strand boot
+// Connectivity check for the Pi's network watchdog. The Pi receives
+// frames by connecting to /stream.
 app.get(prefix+'/hello-pi', function(req, res) {
-  runner.setStrandHost(req._remoteAddress);
-  console.log('ip is now:', req._remoteAddress);
+  console.log('hello from pi:', req._remoteAddress);
   res.send('👋');
 });
 

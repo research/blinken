@@ -1,6 +1,4 @@
 const vm = require('vm');
-const fs = require('fs');
-const dgram = require('dgram');
 const bulb = require('./bulb.js');
 const Bulb = bulb.Bulb;
 
@@ -21,54 +19,30 @@ function getBrightnessScale(lights) {
   return 1;
 }
 
-function StrandControl(host, port) {
-  this.sock = dgram.createSocket('udp4');
-  this.host = host;
-  this.port = port;
+const MAX_STREAM_BACKLOG = 4 * 400; // bytes; four frames
+
+// Sends each frame to every connected stream, including the Pi's
+function StrandControl() {
   this.streams = [];
   this.update = function(lights) {
-    payload = [];
-    ws2812payload = [];
+    let payload = [];
     const scale = getBrightnessScale(lights);
     for (let i=0; i < lights.length; i++) {
       payload = payload.concat(lights[lights.length-1-i].strandBytes(scale));
-      ws2812payload = payload.concat(lights[lights.length-1-i].strandBytesWs2812(scale));
     }
     const packet = Buffer.from(payload);
-    this.sock.send(packet, 0, packet.length, this.port, this.host,
-        function(err, b) {
-          if (err) {
-            console.log('Network error: ' + err);
-          }
-        });
-    const ws2812packet = Buffer.from(payload);
-    for (let i=0; i<this.streams.length; i++) {
-      try {
-        this.streams[i].send(ws2812packet);
-      } catch (ex) {
-        // remove this stream
-        this.streams.splice(i, 1);
-        i--;
+    for (const ws of this.streams) {
+      // Skip clients that are falling behind rather than queueing
+      // frames for them; only the latest frame matters
+      if (ws.readyState === ws.OPEN &&
+          ws.bufferedAmount < MAX_STREAM_BACKLOG) {
+        ws.send(packet);
       }
     }
   };
 }
 
-// use stored IP address from strandIpFile
-const strandIpFile = __dirname + '/strand-ip.conf';
-let strandIp = '127.0.0.1';
-try {
-  strandIp = fs.readFileSync(strandIpFile, 'utf8');
-} catch (e) {
-  console.log(e);
-}
-const strand = new StrandControl(strandIp, 1337);
-
-// dynamically update strand IP and store for restart
-exports.setStrandHost = function(host) {
-  strand.host = host;
-  fs.writeFileSync(strandIpFile, host);
-};
+const strand = new StrandControl();
 
 // Pi strand is 8-bit alpha, 12-bit rgb (4 bit each color)
 Bulb.prototype.strandBytes = function(scale) {
@@ -83,24 +57,14 @@ Bulb.prototype.strandBytes = function(scale) {
     Math.round(limit(this.b)*15)];
 };
 
-// WS2812 has 24-bit rgb (8 bit each color), no alpha
-Bulb.prototype.strandBytesWs2812 = function(scale) {
-    function limit(x) {
-        return Math.min(1, Math.max(0,x));
-    }
-    //scale = scale*limit(this.a);
-    scale = limit(this.a);
-    return [0,   // Could delete, but sending 32-bits is nice for clients
-        Math.round(limit(this.r*scale)*255),
-        Math.round(limit(this.g*scale)*255),
-        Math.round(limit(this.b*scale)*255)];
-};
-
 let currentParams = {};
 
-// Takes the websocket (and assumes a .write/.send function)
-exports.addStream = function(res) {
-  strand.streams.push(res);
+// Adds a websocket that receives every frame until it closes
+exports.addStream = function(ws) {
+  strand.streams.push(ws);
+  ws.on('close', function() {
+    strand.streams.splice(strand.streams.indexOf(ws), 1);
+  });
 };
 
 exports.getCurrent = function() {
