@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tutorial · BBB Blinken Bulbs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
+  <link rel="stylesheet" href="/css/site.css">
+  <script type="module" src="/js/tutorial.js"></script>
+</head>
+<body>
+  <nav class="site-nav">
+    <a class="brand" href="/"><span class="logo" aria-hidden="true"><i></i><i></i><i></i></span><span class="name">BBB Blinken Bulbs</span></a>
+    <a href="/">Gallery</a>
+    <a href="/play/">Playground</a>
+    <a href="/tutorial/" aria-current="page">Tutorial</a>
+    <a href="/status/">Live</a>
+  </nav>
+  <header class="hero">
+    <div>
+      <div class="eyebrow">Bob and Betty Beyster Building · University of Michigan</div>
+      <h1>Program the <span class="gradient-text">stairwell lights</span>.</h1>
+      <p class="lede">The 100 lights spiraling down the Beyster stairwell are
+        programmable, and anyone can program them. Write a light show in
+        JavaScript, try it in the simulator, and then run it on the real
+        stairs for everyone to see.</p>
+      <div class="hero-actions">
+        <a class="button primary large" href="/play/">Open the playground</a>
+        <a class="button large" href="/">Browse the gallery</a>
+      </div>
+    </div>
+    <a class="hero-live stage" href="/status/" aria-label="Watch the stairs live">
+      <span class="live-badge">Live</span>
+      <div id="view"></div>
+      <div class="hero-now" aria-live="polite">
+        <span id="title" class="title">Connecting…</span>
+        <span id="author" class="muted"></span>
+      </div>
+    </a>
+  </header>
+  <main class="page docs">
+    <h2>How a show works</h2>
+    <p>A show creates a <code>Blinken</code> object and passes an
+      <b>initializer</b> function to its <code>run()</code> method. The
+      initializer is called once with an array of the 100 lights, and
+      returns a <b>step</b> function. The step function is called over and
+      over to update the lights, and returns how many milliseconds to wait
+      before the next step.</p>
+<pre><code>const b = new Blinken({title: "Red and Green", author: "Your Name"});
+
+b.run((lights) => {
+  let red = true;
+  return (lights) => {
+    for (const light of lights) {
+      if (red) {
+        light.rgb(1, 0, 0);
+      } else {
+        light.rgb(0, 1, 0);
+      }
+    }
+    red = !red;
+    return 500;  // milliseconds until the next step
+  };
+});</code></pre>
+    <p>If the step function returns a negative number, the show ends.</p>
+
+    <h2>Controlling the lights</h2>
+    <p>Each light has red, green, and blue channels and a brightness
+      (alpha), all from 0 to 1. You can set them directly
+      (<code>light.r = 0.5</code>) or with these methods:</p>
+    <ul>
+      <li><code>rgb(r, g, b)</code> sets the color at full brightness, and
+        <code>rgba(r, g, b, a)</code> sets the color and brightness.</li>
+      <li><code>red()</code>, <code>green()</code>, <code>blue()</code>,
+        <code>cyan()</code>, <code>purple()</code>, <code>yellow()</code>,
+        <code>white()</code>, and <code>black()</code> set simple colors.</li>
+      <li><code>copy(otherLight)</code> and <code>add(otherLight)</code>
+        copy or add another light's color, and <code>clear()</code>
+        resets a light to black.</li>
+      <li><code>new Bulb(r, g, b, a)</code> makes a light you can keep
+        and copy from.</li>
+    </ul>
+    <p>Use <code>console.log()</code> to debug: its output appears in the
+      playground's console.</p>
+
+    <h2>Running on the stairs</h2>
+    <p>Press <b>Run on Stairs</b> in the playground. Your show may wait in
+      line behind others, and then runs for up to two minutes. When no one
+      has a show queued, the stairs play shows from the gallery.</p>
+    <p>On the stairs, shows run in a sandbox with a few limits:</p>
+    <ul>
+      <li>Starting the show may take up to 1 second, and each step up to
+        100 milliseconds.</li>
+      <li>Shows can only use the lights. There's no access to the network,
+        timers, or a web page.</li>
+      <li>The real bulbs only have 16 levels for each color, and total
+        power is limited, so the stairs may look a little different from
+        the simulator.</li>
+    </ul>
+
+    <h2>Saving and sharing</h2>
+    <p>The playground saves your shows in your browser as you type; open
+      <b>My shows</b> to switch between them, start a new one, or upload a
+      file. Saved shows stay in that browser only, so use
+      <b>Download</b> to keep a copy. <b>Share</b> gives you a link to
+      your code. <b>Submit to
+      Gallery</b> sends your show for review; once approved, it appears
+      in the <a href="/">gallery</a>, where people can vote for
+      it and remix it.</p>
+
+    <h2>Older shows</h2>
+    <p>Shows written for the old jsbin setup still work. Paste their
+      JavaScript into the playground, or keep loading
+      <a href="/client.js">client.js</a> in your own page.</p>
+
+    <h2>Contact</h2>
+    <p>Is there a problem with the bulbs? Email
+      <a href="mailto:blinkenlights@umich.edu">blinkenlights@umich.edu</a>.</p>
+  </main>
+</body>
+</html>

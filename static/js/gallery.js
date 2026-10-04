@@ -1,21 +1,17 @@
-// The gallery: approved shows with live previews, voting, and buttons to
-// run them on the stairs or remix them in the playground.
+// The gallery: every approved show, with a live preview while it's on
+// screen, voting, and buttons to run it on the stairs or remix it in the
+// playground.
 
 import {api, watchJob, cancelJob} from './api.js';
 import {Sandbox} from './sandbox.js';
 import {Stairs} from './stairs.js';
 
-const PAGE_SIZE = 12;
-
 const $ = (id) => document.getElementById(id);
 const grid = $('grid');
-const more = $('more');
 const message = $('message');
-const sortSelect = $('sort');
 
 const sandbox = new Sandbox();
-let shows = [];
-let shown = 0;
+let sort = 'top';
 
 function el(tag, props = {}, ...children) {
   const e = Object.assign(document.createElement(tag), props);
@@ -23,7 +19,8 @@ function el(tag, props = {}, ...children) {
   return e;
 }
 
-// Run previews only while they're on screen
+// Previews are built when they first come into view, and run only while
+// they're in view
 const previews = new Map();  // card element -> {start, stop}
 const observer = new IntersectionObserver((entries) => {
   for (const entry of entries) {
@@ -34,36 +31,45 @@ const observer = new IntersectionObserver((entries) => {
       preview.stop();
     }
   }
-}, {rootMargin: '100px'});
+});
 
 function preview(card, view, show) {
-  const stairs = new Stairs(view, {interactive: false});
+  let stairs = null;
   let run = null;
   let code = null;
+  let generation = 0;  // changes when the preview stops
+  const start = async () => {
+    if (run) {
+      return;
+    }
+    const myGeneration = ++generation;
+    stairs ??= new Stairs(view, {interactive: false});
+    run = {stop() {}};
+    try {
+      code ??= (await api(`/shows/${show.id}`)).code;
+    } catch (e) {
+      run = null;
+      return;
+    }
+    if (myGeneration !== generation) {
+      return;  // stopped, and maybe restarted, while loading
+    }
+    run = sandbox.run(code, {
+      frame: (frame) => stairs.setFrame(frame),
+      // Restart shows that end, so the preview keeps moving
+      done: () => {
+        run = null;
+        setTimeout(() => myGeneration === generation && start(), 1000);
+      },
+      error: () => {
+        run = null;
+      },
+    });
+  };
   previews.set(card, {
-    async start() {
-      if (run) {
-        return;
-      }
-      run = {stop() {}};
-      try {
-        code ??= (await api(`/shows/${show.id}`)).code;
-      } catch (e) {
-        return;
-      }
-      run = sandbox.run(code, {
-        frame: (frame) => stairs.setFrame(frame),
-        // Restart shows that end, so the preview keeps moving
-        done: () => {
-          run = null;
-          setTimeout(() => previews.get(card)?.start(), 1000);
-        },
-        error: () => {
-          run = null;
-        },
-      });
-    },
+    start,
     stop() {
+      generation++;
       run?.stop();
       run = null;
     },
@@ -137,7 +143,7 @@ function runButton(show, statusLine) {
 }
 
 function card(show) {
-  const view = el('div', {className: 'card-view'});
+  const view = el('div', {className: 'card-view stage'});
   const statusLine = el('div', {className: 'card-run-status',
     role: 'status'});
   const actions = el('div', {className: 'card-actions'},
@@ -148,29 +154,23 @@ function card(show) {
     actions.append(el('a', {className: 'button', href: show.sourceUrl,
       textContent: 'Discuss', rel: 'noopener'}));
   }
-  const text = el('div', {className: 'card-text'},
+  const byline = el('div', {},
       el('h2', {className: 'card-title', textContent: show.title}));
   if (show.author) {
-    text.append(el('div', {className: 'card-author',
+    byline.append(el('div', {className: 'card-author',
       textContent: `by ${show.author}`}));
   }
+  const body = el('div', {className: 'card-body'},
+      el('div', {className: 'card-head'}, byline, voteButtons(show)));
   if (show.description) {
-    text.append(el('p', {className: 'card-description',
-      textContent: show.description}));
+    body.append(el('p', {className: 'card-description',
+      textContent: show.description, title: show.description}));
   }
-  text.append(actions, statusLine);
+  body.append(actions, statusLine);
   const c = el('article', {className: 'card', id: `show-${show.id}`},
-      view, el('div', {className: 'card-body'}, voteButtons(show), text));
+      view, body);
   preview(c, view, show);
   return c;
-}
-
-function showMore() {
-  for (const show of shows.slice(shown, shown + PAGE_SIZE)) {
-    grid.append(card(show));
-  }
-  shown = Math.min(shown + PAGE_SIZE, shows.length);
-  more.hidden = shown >= shows.length;
 }
 
 async function load() {
@@ -179,19 +179,30 @@ async function load() {
   }
   previews.clear();
   observer.disconnect();
-  grid.replaceChildren();
-  shown = 0;
   message.textContent = 'Loading…';
   try {
-    shows = (await api(`/shows?sort=${sortSelect.value}`)).shows;
-    message.textContent = shows.length ? '' :
-      'No shows yet. Be the first!';
-    showMore();
+    const {shows} = await api(`/shows?sort=${sort}`);
+    $('count').textContent =
+      `${shows.length} ${shows.length === 1 ? 'show' : 'shows'}`;
+    message.textContent = shows.length ? '' : 'No shows yet. Be the first!';
+    grid.replaceChildren(...shows.map(card));
   } catch (e) {
+    grid.replaceChildren();
     message.textContent = `Couldn't load the gallery: ${e.message}`;
   }
 }
 
-sortSelect.addEventListener('change', load);
-more.addEventListener('click', showMore);
+for (const b of document.querySelectorAll('#sort button')) {
+  b.addEventListener('click', () => {
+    if (b.dataset.sort === sort) {
+      return;
+    }
+    sort = b.dataset.sort;
+    for (const other of document.querySelectorAll('#sort button')) {
+      other.setAttribute('aria-pressed', other === b);
+    }
+    load();
+  });
+}
+
 load();

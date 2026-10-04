@@ -430,6 +430,8 @@ export function createApp({db, scheduler, strand, siteUrl,
   });
 
   if (staticDir) {
+    // The gallery moved to the home page (as in config/Caddyfile)
+    app.get(/^\/gallery(\/.*)?$/, (req, res) => res.redirect(301, '/'));
     // Admin URLs for a show (/admin/12) are the admin page
     app.get(/^\/admin\/\d+\/?$/, (req, res) => {
       res.sendFile('admin/index.html', {root: staticDir});

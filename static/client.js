@@ -160,15 +160,33 @@ class Bulb {
   // ../static/js/stairs.js
   var NUM_LIGHTS = 100;
   var GAMMA = 0.33;
+  var RADIUS = 256;
+  var PERSPECTIVE = 2048;
+  var BULB_RADIUS = 13;
+  var GLOW_RADIUS = 47;
+  var GLOW_STOPS = [
+    [0, 1],
+    [0.277, 0.45],
+    [0.319, 0.41],
+    [0.426, 0.31],
+    [0.532, 0.21],
+    [0.638, 0.125],
+    [0.745, 0.07],
+    [0.851, 0.03],
+    [1, 0]
+  ];
+  var FLOOR_Z = -768;
+  var FLOOR_RADIUS = 384;
+  var UNLIT = [130, 135, 160, 0.3];
   var STYLES = `
 .stairs {
   position: absolute;
   inset: 0;
   overflow: hidden;
   user-select: none;
-  touch-action: none;
-  perspective: 2048px;
-  background: var(--stairs-bg, #ececef);
+  touch-action: pan-y;
+  background: var(--stairs-bg,
+    radial-gradient(ellipse at 50% 45%, #2e3249 0%, #151724 75%));
   cursor: grab;
 }
 .stairs.dragging {
@@ -178,38 +196,10 @@ class Bulb {
   cursor: inherit;
   touch-action: auto;
 }
-.stairs-scale, .stairs-world {
-  position: absolute;
-  width: 512px;
-  height: 512px;
-  left: 50%;
-  top: 50%;
-  margin: -256px 0 0 -256px;
-  transform-style: preserve-3d;
-}
-.stairs-floor {
-  position: absolute;
-  width: 768px;
-  height: 768px;
-  left: -128px;
-  top: -128px;
-  background: var(--stairs-floor, rgba(190, 190, 198, 0.5));
-  transform: translateZ(-768px);
-}
-.stairs-holder {
-  position: absolute;
-  left: 256px;
-  top: 256px;
-  transform-style: preserve-3d;
-}
-.stairs-light {
-  position: absolute;
-  width: 20px;
-  height: 20px;
-  margin: -10px 0 0 -10px;
-  border-radius: 50%;
-  background-color: rgba(127, 127, 127, 0.5);
-  border: 0.5px solid rgba(0, 0, 0, 0.6);
+.stairs canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 `;
   function addStyles() {
@@ -223,52 +213,115 @@ class Bulb {
   var Stairs = class {
     constructor(container, { interactive = true } = {}) {
       addStyles();
-      this.container = container;
-      const view = el("div", "stairs");
-      const scale = el("div", "stairs-scale");
-      const world = el("div", "stairs-world");
-      const floor = el("div", "stairs-floor");
-      view.append(scale);
-      scale.append(world);
-      world.append(floor);
-      container.append(view);
-      this.lights = [];
+      this.view = document.createElement("div");
+      this.view.className = "stairs";
+      this.canvas = document.createElement("canvas");
+      this.view.append(this.canvas);
+      container.append(this.view);
+      this.ctx = this.canvas.getContext("2d");
+      this.positions = [];
       for (let n = 0; n < NUM_LIGHTS; n++) {
-        const x = Math.sin(n / NUM_LIGHTS * 6 * Math.PI) * 256;
-        const y = Math.cos(n / NUM_LIGHTS * 6 * Math.PI) * 256;
-        const z = (n - NUM_LIGHTS / 2) * 15;
-        const holder = el("div", "stairs-holder");
-        holder.style.transform = `translate3d(${x.toFixed(4)}px,${y.toFixed(4)}px,${z.toFixed(4)}px)`;
-        const light = el("div", "stairs-light");
-        holder.append(light);
-        world.append(holder);
-        this.lights.push(light);
+        const angle = n / NUM_LIGHTS * 6 * Math.PI;
+        this.positions.push([
+          Math.sin(angle) * RADIUS,
+          Math.cos(angle) * RADIUS,
+          (n - NUM_LIGHTS / 2) * 15
+        ]);
       }
-      this.view = view;
-      this.scale = scale;
-      this.world = world;
+      this.colors = Array.from({ length: NUM_LIGHTS }, () => UNLIT);
       this.xAngle = 90;
       this.zAngle = 0;
       this.depth = 0;
-      new ResizeObserver(() => this.fit()).observe(view);
-      this.fit();
-      this.update();
+      this.pending = false;
+      new ResizeObserver(() => this.resize()).observe(this.view);
+      this.resize();
       if (interactive) {
         this.enableControls();
       } else {
-        view.classList.add("static");
+        this.view.classList.add("static");
       }
     }
-    fit() {
-      const s = this.view.clientHeight / (4 * 512);
-      this.scale.style.transform = `scale(${s.toFixed(4)})`;
+    resize() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = this.view.clientWidth;
+      const h = this.view.clientHeight;
+      this.canvas.width = Math.round(w * dpr);
+      this.canvas.height = Math.round(h * dpr);
+      this.scale = Math.min(h / 2e3, w / 760) * dpr;
+      this.draw();
     }
-    update() {
-      this.world.style.transform = `translateZ(${this.depth.toFixed(4)}px) rotateX(${this.xAngle.toFixed(4)}deg) rotateZ(${this.zAngle.toFixed(4)}deg)`;
-      const face = `rotateZ(${(-this.zAngle).toFixed(4)}deg) rotateX(${(-this.xAngle).toFixed(4)}deg)`;
-      for (const light of this.lights) {
-        light.style.transform = face;
+    // Project a point in the world onto the canvas: [x, y, depth, size],
+    // where size is how much perspective enlarges it
+    project([x, y, z]) {
+      const az = this.zAngle * Math.PI / 180;
+      const ax = this.xAngle * Math.PI / 180;
+      const x1 = x * Math.cos(az) - y * Math.sin(az);
+      const y1 = x * Math.sin(az) + y * Math.cos(az);
+      const y2 = y1 * Math.cos(ax) - z * Math.sin(ax);
+      const z2 = y1 * Math.sin(ax) + z * Math.cos(ax) + this.depth;
+      const size = PERSPECTIVE / (PERSPECTIVE - z2);
+      return [
+        this.canvas.width / 2 + x1 * this.scale * size,
+        this.canvas.height / 2 + y2 * this.scale * size,
+        z2,
+        size
+      ];
+    }
+    // Draw on the next animation frame, at most once per frame
+    draw() {
+      if (!this.pending) {
+        this.pending = true;
+        requestAnimationFrame(() => {
+          this.pending = false;
+          this.render();
+        });
       }
+    }
+    render() {
+      const ctx = this.ctx;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+      this.renderFloor();
+      const bulbs = this.positions.map((p, i) => [...this.project(p), i]).filter((b) => b[2] < PERSPECTIVE - 1).sort((a, b) => a[2] - b[2]);
+      for (const [x, y, , size, i] of bulbs) {
+        const [r, g, b, a] = this.colors[i];
+        const k = this.scale * size;
+        const rgba = (alpha) => `rgba(${r},${g},${b},${a * alpha})`;
+        const glow = ctx.createRadialGradient(x, y, 0, x, y, GLOW_RADIUS * k);
+        for (const [offset, alpha] of GLOW_STOPS) {
+          glow.addColorStop(offset, rgba(alpha));
+        }
+        ctx.fillStyle = glow;
+        ctx.fillRect(
+          x - GLOW_RADIUS * k,
+          y - GLOW_RADIUS * k,
+          GLOW_RADIUS * k * 2,
+          GLOW_RADIUS * k * 2
+        );
+        ctx.beginPath();
+        ctx.arc(x, y, BULB_RADIUS * k, 0, 2 * Math.PI);
+        ctx.fillStyle = rgba(1);
+        ctx.fill();
+        ctx.lineWidth = 2 * k;
+        ctx.strokeStyle = "rgba(255,255,255,0.1)";
+        ctx.stroke();
+      }
+    }
+    // A soft pool of light on the floor below the strand: a circle on the
+    // floor, drawn as the ellipse it projects to
+    renderFloor() {
+      const [cx, cy] = this.project([0, 0, FLOOR_Z]);
+      const [xx, xy] = this.project([FLOOR_RADIUS, 0, FLOOR_Z]);
+      const [yx, yy] = this.project([0, FLOOR_RADIUS, FLOOR_Z]);
+      const ctx = this.ctx;
+      ctx.save();
+      ctx.setTransform(xx - cx, xy - cy, yx - cx, yy - cy, cx, cy);
+      const pool = ctx.createRadialGradient(0, 0, 0, 0, 0, 1);
+      pool.addColorStop(0, "rgba(150,160,255,0.12)");
+      pool.addColorStop(1, "rgba(150,160,255,0)");
+      ctx.fillStyle = pool;
+      ctx.fillRect(-1, -1, 2, 2);
+      ctx.restore();
     }
     enableControls() {
       const view = this.view;
@@ -291,8 +344,10 @@ class Bulb {
           return;
         }
         this.zAngle = start.zAngle - (e.clientX - start.x) / view.clientWidth * 180;
-        this.xAngle = Math.max(0, Math.min(180, start.xAngle - (e.clientY - start.y) / view.clientHeight * 180));
-        this.update();
+        if (e.pointerType !== "touch") {
+          this.xAngle = Math.max(0, Math.min(180, start.xAngle - (e.clientY - start.y) / view.clientHeight * 180));
+        }
+        this.draw();
       });
       const end = () => {
         start = null;
@@ -303,27 +358,27 @@ class Bulb {
       view.addEventListener("wheel", (e) => {
         e.preventDefault();
         this.depth = Math.max(-3e3, Math.min(1500, this.depth - e.deltaY * 2));
-        this.update();
+        this.draw();
       }, { passive: false });
     }
     setFrame(frame) {
       for (let i = 0; i < NUM_LIGHTS; i++) {
         const a = clamp(frame[i * 4 + 3]);
         const c = (v) => Math.round(Math.pow(a * clamp(v), GAMMA) * 255);
-        this.lights[i].style.backgroundColor = `rgb(${c(frame[i * 4])},${c(frame[i * 4 + 1])},${c(frame[i * 4 + 2])})`;
+        this.colors[i] = [
+          c(frame[i * 4]),
+          c(frame[i * 4 + 1]),
+          c(frame[i * 4 + 2]),
+          1
+        ];
       }
+      this.draw();
     }
     clear() {
-      for (const light of this.lights) {
-        light.style.backgroundColor = "";
-      }
+      this.colors.fill(UNLIT);
+      this.draw();
     }
   };
-  function el(tag, className) {
-    const e = document.createElement(tag);
-    e.className = className;
-    return e;
-  }
   function clamp(x) {
     return Math.min(1, Math.max(0, Number(x) || 0));
   }

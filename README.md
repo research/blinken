@@ -16,11 +16,12 @@ on Google Docs. The Raspberry Pi that drives the lights runs
   saved as drafts in the visitor's browser, and can be downloaded and
   uploaded as files. From there they can share a link to their code, run
   it on the stairs, or submit it to the gallery.
-- **Gallery** (`/gallery/`): approved shows, with live previews and
+- **Gallery** (`/`, the home page): approved shows, with live previews and
   anonymous voting. When no one has a show queued, the stairs play gallery
   shows, favoring well-voted ones.
 - **Admin** (`/admin/`): review submissions; approve, hide, reject, edit,
   or delete shows; run any show next.
+- **Tutorial** (`/tutorial/`): how to write a show.
 - **Live** (`/status/`): what's playing, with a live view of the lights.
 
 The server (`server/`) is a single Node.js service:

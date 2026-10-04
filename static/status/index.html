@@ -4,26 +4,32 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Live · BBB Blinken Bulbs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
   <link rel="stylesheet" href="/css/site.css">
   <script type="module" src="/js/status.js"></script>
 </head>
 <body>
   <nav class="site-nav">
-    <a class="brand" href="/">BBB Blinken Bulbs</a>
+    <a class="brand" href="/"><span class="logo" aria-hidden="true"><i></i><i></i><i></i></span><span class="name">BBB Blinken Bulbs</span></a>
+    <a href="/">Gallery</a>
     <a href="/play/">Playground</a>
-    <a href="/gallery/">Gallery</a>
+    <a href="/tutorial/">Tutorial</a>
     <a href="/status/" aria-current="page">Live</a>
   </nav>
-  <main class="page wide">
-    <div class="status-layout">
-      <div class="status-now" aria-live="polite">
-        <div class="muted">Now on the stairs</div>
-        <div class="title"><a id="link"><span id="title">…</span></a></div>
-        <div id="author" class="muted"></div>
-        <div id="time" class="time"></div>
-        <p id="connection" class="muted"></p>
-      </div>
-      <div id="view" class="status-view"></div>
+  <main class="status-layout">
+    <div class="status-now" aria-live="polite">
+      <div class="eyebrow">Now on the stairs</div>
+      <div class="title"><a id="link"><span id="title">…</span></a></div>
+      <div id="author" class="author muted"></div>
+      <div id="time" class="time"></div>
+      <p id="connection" class="muted"></p>
+      <p><a class="button" href="/play/">Make your own show</a></p>
+    </div>
+    <div class="status-view stage">
+      <span class="live-badge">Live</span>
+      <div id="view"></div>
     </div>
   </main>
 </body>

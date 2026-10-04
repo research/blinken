@@ -59,11 +59,39 @@ function setStatus(text, kind = '') {
   statusEl.className = 'play-status' + (kind ? ` status-${kind}` : '');
 }
 
+// --- Console ---
+//
+// The console stays out of the way until a show prints something. It
+// opens for errors, and for console.log() output unless the visitor has
+// collapsed it.
+
+const consolePanel = $('console-panel');
+const consoleToggle = $('console-toggle');
+const consoleCount = $('console-count');
+let consoleCollapsed = false;   // by the visitor
+let lineCount = 0;
+let errorCount = 0;
+
+function setConsoleOpen(open) {
+  consoleToggle.setAttribute('aria-expanded', open);
+  consoleEl.hidden = !open;
+}
+
+function updateCount() {
+  consoleCount.textContent = lineCount || '';
+  consoleCount.hidden = !lineCount;
+  consoleCount.classList.toggle('error', errorCount > 0);
+  consoleCount.title = errorCount ?
+    `${lineCount} messages, ${errorCount} errors` : `${lineCount} messages`;
+}
+
 function clearConsole() {
   const empty = document.createElement('div');
   empty.className = 'empty';
-  empty.textContent = 'Output from console.log() appears here.';
+  empty.textContent = 'No output yet.';
   consoleEl.replaceChildren(empty);
+  lineCount = errorCount = 0;
+  updateCount();
 }
 
 function log(level, text) {
@@ -76,8 +104,25 @@ function log(level, text) {
   while (consoleEl.childElementCount > 500) {
     consoleEl.firstElementChild.remove();
   }
+  lineCount++;
+  if (level === 'error') {
+    errorCount++;
+  }
+  updateCount();
+  consolePanel.hidden = false;
+  if (level === 'error' || !consoleCollapsed) {
+    setConsoleOpen(true);
+  }
   consoleEl.scrollTop = consoleEl.scrollHeight;
 }
+
+consoleToggle.addEventListener('click', () => {
+  const open = consoleEl.hidden;
+  consoleCollapsed = !open;
+  setConsoleOpen(open);
+});
+
+$('console-clear').addEventListener('click', clearConsole);
 
 function code() {
   return editor.state.doc.toString();

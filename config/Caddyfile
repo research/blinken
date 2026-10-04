@@ -5,9 +5,10 @@ blinken.org {
 	encode zstd gzip
 	log
 
-	# Old gallery pages and previews
-	@oldgallery path_regexp ^/gallery/(\d+|preview/.*)$
-	redir @oldgallery /gallery/
+	# The gallery, including old show pages and previews, is now the
+	# home page
+	@oldgallery path_regexp ^/gallery(/.*)?$
+	redir @oldgallery / permanent
 
 	# Admin URLs for a show (/admin/12) are the admin page
 	@adminShow path_regexp ^/admin/\d+/?$

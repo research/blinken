@@ -5,64 +5,72 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
   <title>Admin · BBB Blinken Bulbs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
   <link rel="stylesheet" href="/css/site.css">
   <script type="module" src="/js/admin.js"></script>
 </head>
 <body>
   <nav class="site-nav">
-    <a class="brand" href="/">BBB Blinken Bulbs</a>
+    <a class="brand" href="/"><span class="logo" aria-hidden="true"><i></i><i></i><i></i></span><span class="name">BBB Blinken Bulbs</span></a>
+    <a href="/">Gallery</a>
     <a href="/play/">Playground</a>
-    <a href="/gallery/">Gallery</a>
+    <a href="/tutorial/">Tutorial</a>
     <a href="/status/">Live</a>
     <a href="/admin/" aria-current="page">Admin</a>
   </nav>
   <main class="page wide">
     <h1>Review shows</h1>
-    <div id="tabs" class="admin-tabs" role="group" aria-label="Status"></div>
+    <div id="tabs" class="admin-tabs segmented" role="group" aria-label="Status"></div>
     <p id="message" class="admin-message" role="status"></p>
     <div class="admin">
       <ul id="list" class="admin-list"></ul>
       <section id="detail" class="admin-detail" hidden>
-        <div id="view" class="card-view"></div>
-        <p id="preview-status" class="muted"></p>
-        <form id="form">
-          <label for="title">Title</label>
-          <input id="title" maxlength="100" required>
-          <label for="author">Author</label>
-          <input id="author" maxlength="100">
-          <label for="description">Description</label>
-          <textarea id="description" rows="2" maxlength="1000"></textarea>
-          <label for="note">Note (only visible to admins)</label>
-          <textarea id="note" rows="2" maxlength="1000"></textarea>
-          <div class="admin-fields">
-            <div>
-              <label for="created">Submitted</label>
-              <input id="created" type="datetime-local" required>
+        <div>
+          <form id="form">
+            <label for="title">Title</label>
+            <input id="title" maxlength="100" required>
+            <label for="author">Author</label>
+            <input id="author" maxlength="100">
+            <label for="description">Description</label>
+            <textarea id="description" rows="2" maxlength="1000"></textarea>
+            <label for="note">Note (only visible to admins)</label>
+            <textarea id="note" rows="2" maxlength="1000"></textarea>
+            <div class="admin-fields">
+              <div>
+                <label for="created">Submitted</label>
+                <input id="created" type="datetime-local" required>
+              </div>
+              <div>
+                <label for="up">Up votes</label>
+                <input id="up" type="number" min="0" step="1" required>
+              </div>
+              <div>
+                <label for="down">Down votes</label>
+                <input id="down" type="number" min="0" step="1" required>
+              </div>
             </div>
-            <div>
-              <label for="up">Up votes</label>
-              <input id="up" type="number" min="0" step="1" required>
-            </div>
-            <div>
-              <label for="down">Down votes</label>
-              <input id="down" type="number" min="0" step="1" required>
-            </div>
+            <label for="editor">Code</label>
+            <div id="editor" class="admin-editor"></div>
+          </form>
+          <p id="meta" class="muted"></p>
+          <div class="admin-actions">
+            <button data-status="approved" class="primary">Approve</button>
+            <button data-status="hidden">Hide</button>
+            <button data-status="rejected">Reject</button>
+            <button data-status="pending">Back to pending</button>
+            <button id="save">Save changes</button>
+            <span id="unsaved" class="status-warn admin-unsaved" hidden>Unsaved changes</span>
+            <button id="preview" title="Preview edits (Ctrl+Enter)">Preview edits</button>
+            <button id="run">Run on Stairs next</button>
+            <button id="open">Open in Playground</button>
+            <button id="delete">Delete</button>
           </div>
-          <label for="editor">Code</label>
-          <div id="editor" class="admin-editor"></div>
-        </form>
-        <p id="meta" class="muted"></p>
-        <div class="admin-actions">
-          <button data-status="approved" class="primary">Approve</button>
-          <button data-status="hidden">Hide</button>
-          <button data-status="rejected">Reject</button>
-          <button data-status="pending">Back to pending</button>
-          <button id="save">Save changes</button>
-          <span id="unsaved" class="status-warn admin-unsaved" hidden>Unsaved changes</span>
-          <button id="preview" title="Preview edits (Ctrl+Enter)">Preview edits</button>
-          <button id="run">Run on Stairs next</button>
-          <button id="open">Open in Playground</button>
-          <button id="delete">Delete</button>
+        </div>
+        <div class="admin-preview">
+          <div id="view" class="admin-view stage"></div>
+          <p id="preview-status" class="muted"></p>
         </div>
       </section>
     </div>

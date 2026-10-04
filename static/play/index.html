@@ -4,38 +4,57 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Playground · BBB Blinken Bulbs</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@500;600;700&display=swap">
   <link rel="stylesheet" href="/css/site.css">
   <script type="module" src="/js/play.js"></script>
 </head>
 <body>
   <nav class="site-nav">
-    <a class="brand" href="/">BBB Blinken Bulbs</a>
+    <a class="brand" href="/"><span class="logo" aria-hidden="true"><i></i><i></i><i></i></span><span class="name">BBB Blinken Bulbs</span></a>
+    <a href="/">Gallery</a>
     <a href="/play/" aria-current="page">Playground</a>
-    <a href="/gallery/">Gallery</a>
+    <a href="/tutorial/">Tutorial</a>
     <a href="/status/">Live</a>
   </nav>
   <main class="play">
-    <div class="play-toolbar">
-      <button id="shows" title="Open, create, or upload shows">My shows ▾</button>
-      <span id="draft-name" class="play-draft-name"></span>
-      <button id="run" class="primary" title="Run (Ctrl+Enter)">▶ Run</button>
-      <button id="stop">■ Stop</button>
-      <span class="spacer"></span>
-      <span id="status" class="play-status" role="status"></span>
-      <button id="download" title="Save this show as a file">Download</button>
-      <button id="share" title="Get a link to this code">Share</button>
-      <button id="stairs" title="Show this on the real stairs">Run on Stairs</button>
-      <button id="submit" title="Submit this show for the gallery">Submit to Gallery</button>
+    <div class="play-main">
+      <div class="play-toolbar">
+        <button id="shows" title="Open, create, or upload shows">My shows ▾</button>
+        <span id="draft-name" class="play-draft-name"></span>
+        <span class="divider"></span>
+        <button id="run" class="primary" title="Run (Ctrl+Enter)">▶ Run</button>
+        <button id="stop" title="Stop the simulator">■ Stop</button>
+        <span class="spacer"></span>
+        <span id="status" class="play-status" role="status"></span>
+        <button id="download" class="ghost" title="Save this show as a file">Download</button>
+        <button id="share" class="ghost" title="Get a link to this code">Share</button>
+        <button id="submit" title="Submit this show for the gallery">Submit to Gallery</button>
+      </div>
+      <div id="editor" class="play-editor"></div>
+      <section id="console-panel" class="console" aria-label="Console" hidden>
+        <div class="console-head">
+          <button id="console-toggle" class="ghost console-toggle"
+            aria-expanded="true" aria-controls="console">Console</button>
+          <span id="console-count" class="badge"></span>
+          <span class="spacer"></span>
+          <button id="console-clear" class="ghost">Clear</button>
+        </div>
+        <div id="console" class="console-body" aria-live="polite"></div>
+      </section>
     </div>
-    <div id="editor" class="play-editor"></div>
-    <div class="play-side">
-      <div id="view" class="play-view"></div>
-      <div id="console" class="play-console" aria-label="Console" aria-live="polite"></div>
+    <div class="play-preview">
+      <div id="view" class="stage"></div>
+      <span class="play-preview-hint">Drag to turn · scroll to zoom</span>
+      <div class="play-preview-actions">
+        <button id="stairs" class="large" title="Show this on the real stairs">Run on Stairs</button>
+      </div>
     </div>
   </main>
 
   <dialog id="shows-dialog" class="shows-dialog">
-    <h2 style="margin-top: 0">My shows</h2>
+    <h2>My shows</h2>
     <div class="dialog-buttons" style="justify-content: flex-start; margin-top: 0">
       <button id="new-show" class="primary">New show</button>
       <button id="upload">Upload a file…</button>
@@ -52,7 +71,7 @@
 
   <dialog id="submit-dialog">
     <form id="submit-form" method="dialog">
-      <h2 style="margin-top: 0">Submit to the gallery</h2>
+      <h2>Submit to the gallery</h2>
       <p class="muted">Your show will appear in the gallery once it has been
         reviewed. It's shown with the name you give here.</p>
       <label for="submit-title">Title</label>
