@@ -1,23 +1,37 @@
+# Caddy v2 configuration for blinken.org
+# Install as /etc/caddy/Caddyfile and run `systemctl reload caddy`.
+
 blinken.org {
-    log stdout
-    errors stderr
+	encode zstd gzip
+	log
 
-    root /home/jhalderm/blinken/static/
-    proxy /gallery localhost:3001
+	# Old gallery pages and previews
+	@oldgallery path_regexp ^/gallery/(\d+|preview/.*)$
+	redir @oldgallery /gallery/
 
-    proxy /api/0/random localhost:3001
-    proxy /api/0/ localhost:3000 { websocket }
+	# Admin URLs for a show (/admin/12) are the admin page
+	@adminShow path_regexp ^/admin/\d+/?$
+	rewrite @adminShow /admin/index.html
+
+	# The admin API checks the admin login itself
+	reverse_proxy /api/* localhost:3000
+
+	root * /srv/blinken/static
+	file_server
 }
 
 # Redirect from the old hostname
 blinken.eecs.umich.edu {
-    redir https://blinken.org{uri}
+	redir https://blinken.org{uri}
 }
 
-# For ewust's legacy embedded clients :-(
+# For older embedded clients that can't use HTTPS: only the original API
 http://insecure.blinken.org {
-    proxy /api/0/random localhost:3001
-    proxy /api/0/ localhost:3000 { websocket }
-    rewrite ^/$ /_root_
-    redir /_root_ https://blinken.org
+	@legacy path /api/0/random /api/0/current /api/0/stream /api/0/hello-pi /api/0/publish /api/0/status/* /api/0/cancel/*
+	handle @legacy {
+		reverse_proxy localhost:3000
+	}
+	handle {
+		redir https://blinken.org{uri}
+	}
 }

@@ -1,21 +1,37 @@
 {
   "name": "blinken",
-  "version": "1.0.0",
-  "description": "",
+  "version": "2.0.0",
+  "description": "Server for the BBB Blinkenlights",
+  "private": true,
+  "type": "module",
   "main": "server.js",
+  "engines": {
+    "node": ">=22.13"
+  },
   "dependencies": {
-    "express": "^4.17.1",
-    "express-ws": "^5.0.2",
-    "morgan": "^1.10.0"
+    "express": "^5.2.1",
+    "morgan": "^1.12.1",
+    "quickjs-emscripten": "^0.32.0",
+    "ws": "^8.22.0"
   },
   "devDependencies": {
-    "eslint": "^10.4.1",
-    "eslint-config-google": "^0.14.0"
+    "@codemirror/autocomplete": "^6.20.3",
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/lang-javascript": "^6.2.4",
+    "@codemirror/language": "^6.12.4",
+    "@codemirror/lint": "^6.9.7",
+    "@codemirror/search": "^6.7.2",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.13",
+    "codemirror": "^6.0.2",
+    "esbuild": "^0.28.2"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "start": "node --disable-warning=ExperimentalWarning server.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch --watch-preserve-output server.js",
+    "test": "node --test",
+    "build:vendor": "node build-vendor.js",
+    "import-gallery": "node import-gallery.js"
   },
-  "author": "",
   "license": "ISC"
 }

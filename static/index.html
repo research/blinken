@@ -1,157 +1,109 @@
+<!doctype html>
 <html lang="en">
-<head> 
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/2.3.2/css/bootstrap-responsive.min.css" rel="stylesheet"/>
-  <link href="/css/local.css" rel="stylesheet"/>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BBB Blinken Bulbs</title>
-  <meta name="viewport" content="width=device-width, initial-scale=0.85">
+  <link rel="stylesheet" href="/css/site.css">
 </head>
-<body style="background-color: #f5f5f5">
-  <div class="navbar navbar-static-top navbar-inverse">
-    <div class="navbar-inner">
+<body>
+  <nav class="site-nav">
     <a class="brand" href="/">BBB Blinken Bulbs</a>
-       <ul class="nav pull-right">
-	  <li><a href="/status/">Status</a></li>
-	  <li><a href="/gallery/">Gallery</a></li>
-	  <li><a href="https://jsbin.com/libimax/edit#js,,output">Example</a></li>
-	  <li><a href="https://www.reddit.com/r/bbbblinken">Subreddit</a></li>
-       </ul>
+    <a href="/play/">Playground</a>
+    <a href="/gallery/">Gallery</a>
+    <a href="/status/">Live</a>
+  </nav>
+  <main class="page">
+    <div class="panel">
+      <h1>BBB Blinken Bulbs</h1>
+      <p>The 100 lights spiraling down the stairwell of the Bob and Betty
+        Beyster Building are programmable, and anyone can program them. Write
+        a light show in JavaScript, try it in the simulator, and then run it
+        on the real stairs for everyone to see.</p>
+      <p>
+        <a class="button primary" href="/play/">Open the playground</a>
+        <a class="button" href="/gallery/">Browse the gallery</a>
+        <a class="button" href="/status/">See what's on now</a>
+      </p>
+
+      <h2>How a show works</h2>
+      <p>A show creates a <code>Blinken</code> object and passes an
+        <b>initializer</b> function to its <code>run()</code> method. The
+        initializer is called once with an array of the 100 lights, and
+        returns a <b>step</b> function. The step function is called over and
+        over to update the lights, and returns how many milliseconds to wait
+        before the next step.</p>
+<pre><code>const b = new Blinken({title: "Red and Green", author: "Your Name"});
+
+b.run((lights) => {
+  let red = true;
+  return (lights) => {
+    for (const light of lights) {
+      if (red) {
+        light.rgb(1, 0, 0);
+      } else {
+        light.rgb(0, 1, 0);
+      }
+    }
+    red = !red;
+    return 500;  // milliseconds until the next step
+  };
+});</code></pre>
+      <p>If the step function returns a negative number, the show ends.</p>
+
+      <h2>Controlling the lights</h2>
+      <p>Each light has red, green, and blue channels and a brightness
+        (alpha), all from 0 to 1. You can set them directly
+        (<code>light.r = 0.5</code>) or with these methods:</p>
+      <ul>
+        <li><code>rgb(r, g, b)</code> sets the color at full brightness, and
+          <code>rgba(r, g, b, a)</code> sets the color and brightness.</li>
+        <li><code>red()</code>, <code>green()</code>, <code>blue()</code>,
+          <code>cyan()</code>, <code>purple()</code>, <code>yellow()</code>,
+          <code>white()</code>, and <code>black()</code> set simple colors.</li>
+        <li><code>copy(otherLight)</code> and <code>add(otherLight)</code>
+          copy or add another light's color, and <code>clear()</code>
+          resets a light to black.</li>
+        <li><code>new Bulb(r, g, b, a)</code> makes a light you can keep
+          and copy from.</li>
+      </ul>
+      <p>Use <code>console.log()</code> to debug: its output appears in the
+        playground's console.</p>
+
+      <h2>Running on the stairs</h2>
+      <p>Press <b>Run on Stairs</b> in the playground. Your show may wait in
+        line behind others, and then runs for up to two minutes. When no one
+        has a show queued, the stairs play shows from the gallery.</p>
+      <p>On the stairs, shows run in a sandbox with a few limits:</p>
+      <ul>
+        <li>Starting the show may take up to 1 second, and each step up to
+          100 milliseconds.</li>
+        <li>Shows can only use the lights. There's no access to the network,
+          timers, or a web page.</li>
+        <li>The real bulbs only have 16 levels for each color, and total
+          power is limited, so the stairs may look a little different from
+          the simulator.</li>
+      </ul>
+
+      <h2>Saving and sharing</h2>
+      <p>The playground saves your shows in your browser as you type; open
+        <b>My shows</b> to switch between them, start a new one, or upload a
+        file. Saved shows stay in that browser only, so use
+        <b>Download</b> to keep a copy. <b>Share</b> gives you a link to
+        your code. <b>Submit to
+        Gallery</b> sends your show for review; once approved, it appears
+        in the <a href="/gallery/">gallery</a>, where people can vote for
+        it and remix it.</p>
+
+      <h2>Older shows</h2>
+      <p>Shows written for the old jsbin setup still work. Paste their
+        JavaScript into the playground, or keep loading
+        <a href="/client.js">client.js</a> in your own page.</p>
+
+      <h2>Contact</h2>
+      <p>Is there a problem with the bulbs? Email
+        <a href="mailto:blinkenlights@umich.edu">blinkenlights@umich.edu</a>.</p>
     </div>
-  </div>
-  <div class="content">
-    <div class="container">
-	<div class="row-fluid"> 
-	  <div class="span10 white-panel offset1 title">
-	    <div class="content">
-	    <h2>BBB Blinken Bulbs</h2>
-
-<p class="front">
-Hello! Did you know that the lights in the BBB Building are programmable?
-We have provided an API for the lights to allow people to program them via JavaScript.
-This allows us to provide you with a simple simulator to play around with and test your
-light controller function, and then push your controller to the strand for all
-the world to see when you're done.
-</p>
-
-<p class="front">
-<span class="label label-info">TLDR</span>
-With the click of a button, you can run any of the submitted programs from the <a href="/gallery/">gallery</a>
-and view the currently running show via the <a href="/status/">status</a> page.
-</p>
-
-<p class="front">
-<span class="label label-info">Programmers</span>
-Submit your cool programs to the <a href="https://www.reddit.com/r/bbbblinken">subreddit</a> and see them displayed in the gallery!
-</p>
-
-<h3>Using the API</h3>
-<p>
-To use our simulator and control the lights, you'll need to include our <a
-href="/client.js">client.js</a> library, which
-exports Blinken and Bulb objects. You can instantiate it using the <code>new</code>
-constructor, giving it an object that contains a title and who wrote this show:
-</p>
-
-<pre><b>const b = new Blinken({title: "My Title", author: "My Name"});</b></pre>
-
-<p>
-This object has a <code>run()</code> method, which takes as an argument an
-<a href="https://en.wikipedia.org/wiki/Anonymous_function">anonymous
-function</a> that is called once to <b>initialize</b> the light strand.
-
-This function is expected to return another anonymous function that is
-periodically called to <b>update</b> the state of the light strand. This update
-function is expected to return the number of milliseconds to wait before the
-update function is called again. Both the initializer and update functions are
-given a <code>lights</code> object as an argument, which represents the
-current state of the light strand. There are 100 lights in our strand (indexed
-0-99), and each light can be assigned individual <a
-href="https://en.wikipedia.org/wiki/RGB_color_model">RGB</a> and brightness
-values. These values are expected as floats between 0 and 1.
-</p>
-
-<h3>Walkthrough Example</h3>
-<p>Confused? Let's walk through a simple example; we'll leave off anonymous
-functions for later. Our simple example will alternate the strand between
-all red and all green lights.</p>
-
-<p>First, let's define the update function, that will be called every 500
-milliseconds to allow us to update the state of the light strand:<p>
-
-<script src="https://gist.github.com/jhalderm/3454c7f6a5a7a1a7f1dfec4a2c1a4f7c.js"></script>
-
-<p>Now that we have an update function, we need to create an initializer
-function. Our initializer will simply set all the lights brightness to full
-on. Our initializer must also return a pointer to our update function.</p>
-
-<script src="https://gist.github.com/jhalderm/56d1174aa937f27e53ad3c2521d557b1.js"></script>
-
-<p>Finally, we can create the <code>Blinken</code> object, and pass our
-initializer to it:
-</p>
-
-<script src="https://gist.github.com/jhalderm/ead353b3a826476b175edf533c8f9a05.js"></script>
-
-<h3>Result</h3>
-<p>That's it! As long as we include the <a href="/client.js">client.js</a> library
-on the same page as the above JavaScript, we'll see something like this when run in
-a browser (feel free to click and drag or use the scroll wheel to zoom in and
-out):
-
-<script async src="https://jsfiddle.net/jhalderm/aLgm721f/embed/result/"></script>
-
-<p>When we're satisfied with our simulation, simply click the <code>Run on
-Stairs</code> button on the simulation page, and then <a
-href="/status/">watch it go!</a> Your code may be
-queued behind someone if another program is currently running, but the button
-will change to tell you the current status of your program.</p>
-
-<p>If you're happy with how it looks on the stairs, feel free to submit it to
-the <a href="https://www.reddit.com/r/bbbblinken">BBBBlinken Subreddit</a> for
-all to see, and pick your favorites from the list of already submitted
-blinkens.</p>
-
-<h3>Putting it all together</h3>
-
-<p>You can use any JavaScript environment you want, including running it in
-your browser locally, but it's easiest to share your code and simulation with
-others (and the <a href="https://www.reddit.com/r/bbbblinken">subreddit</a>) if
-you use a JavaScript pastebin-like site. We recommend <a
-href="https://jsbin.com/">jsbin.com</a>, since it allows you to see the console
-as one of the panels. The console can be helpful for finding errors in your
-program. 
-</p>
-
-<p>
-To include the JavaScript libraries on jsbin.com, you'll need to include them
-with the <code>&lt;script&gt;</code> tag in the HTML pane, like this:
-<script src="https://gist.github.com/jhalderm/55e1071d25a8720244efce77c9aa9608.js"></script>
-</p>
-
-<p>
-JavaScript allows us to do all of the above much more compactly through the
-use of anonymous functions. Here's a cleaner, more "functional" version of the
-simple red-green blinking demo:
-</p>
-
-<script src="https://gist.github.com/jhalderm/b04c7ef6534d63b475e00df224eb48ce.js"></script>
-
-<p>
-Here's another <a
-href="https://jsbin.com/libimax/2/edit#js,console,output">example</a>
-of a simple snake program to help inspire additional ideas.</p>
-
-<p>Happy Hacking!</p>
-
-<h3>Contact</h3>
-
-<p>Is there a problem with the bulbs? Email <a href="mailto:blinkenlights@umich.edu">blinkenlights@umich.edu</a>.</p>
-
-	    </div>
-         </div>
-       </div>
-    </div>
-  </div>
+  </main>
 </body>
 </html>
-

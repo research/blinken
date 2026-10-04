@@ -1,91 +1,62 @@
-#!/usr/bin/node
+#!/usr/bin/env node
+// blinken.org server: API, show scheduler, and frame stream.
+//
+// Configuration (environment variables):
+//   PORT, HOST              where to listen (default localhost:3000)
+//   BLINKEN_DB              SQLite database path (default ./blinken.db)
+//   BLINKEN_SITE_URL        public URL of the site (default https://blinken.org)
+//   BLINKEN_ADMIN_USER      admin login; the admin API is disabled
+//   BLINKEN_ADMIN_PASSWORD    unless both are set
 
-const scheduler = require('./scheduler.js');
-const express = require('express');
-const bodyParser = require('body-parser');
-const logger = require('morgan');
-const runner = require('./runner.js');
+import http from 'node:http';
+import {fileURLToPath} from 'node:url';
+import {WebSocketServer} from 'ws';
+import {createApp} from './app.js';
+import {Db} from './db.js';
+import {Scheduler} from './scheduler.js';
+import {Strand} from './strand.js';
 
-const ews = require('express-ws');
-const expressWs = ews(express());
-const app = expressWs.app;
+const env = process.env;
+const host = env.HOST || 'localhost';
+const port = Number(env.PORT || 3000);
+const siteUrl = env.BLINKEN_SITE_URL || 'https://blinken.org';
 
-const prefix = '/api/0'; // path to this service
+const db = new Db(env.BLINKEN_DB || 'blinken.db');
+const strand = new Strand();
+const scheduler = new Scheduler({db, strand, siteUrl});
 
-app.use(bodyParser());
-app.use(logger('combined'));
-app.set('trust proxy', 'loopback');
-
-// This allows people to connect in on the /stream websocket, and get
-// a continuous stream of frames of the current running show (~5KB/s
-// per stream)
-app.ws(prefix+'/stream', function(ws, req) {
-  ws.on('message', function(msg) {
-    console.log('ws message:', msg);
-  });
-  runner.addStream(ws);
-  console.log('stream websocket', req._remoteAddress);
+const app = createApp({
+  db, scheduler, strand, siteUrl,
+  adminUser: env.BLINKEN_ADMIN_USER,
+  adminPassword: env.BLINKEN_ADMIN_PASSWORD,
+  staticDir: fileURLToPath(new URL('../static', import.meta.url)),
 });
 
-// Connectivity check for the Pi's network watchdog. The Pi receives
-// frames by connecting to /stream.
-app.get(prefix+'/hello-pi', function(req, res) {
-  console.log('hello from pi:', req._remoteAddress);
-  res.send('👋');
-});
+const server = http.createServer(app);
 
-// CORS preflight to allow /publish to use a JSON body
-app.options(prefix+'/publish', function(req, res) {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
-  res.send(200);
-});
-
-app.post(prefix+'/publish', function(req, res) {
-  res.header('Access-Control-Allow-Origin', '*');
-  if (typeof req.body.code === 'undefined') {
-    res.send(400);
+// Anyone may watch the stream; the Pi drives the lights from it
+const wss = new WebSocketServer({noServer: true, maxPayload: 1024});
+server.on('upgrade', (req, socket, head) => {
+  if (new URL(req.url, 'http://x').pathname !== '/api/0/stream') {
+    socket.destroy();
     return;
   }
-  console.warn(JSON.stringify(req.body));
-  const token = scheduler.makeJob(
-      req.body.code, req.body.url, req.body.title, req.body.author);
-  console.log('published from: ' + req.body.url);
-  scheduler.queueJob(token);
-  res.send(token);
+  wss.handleUpgrade(req, socket, head, (ws) => {
+    console.log('stream websocket',
+        req.headers['x-forwarded-for'] || req.socket.remoteAddress);
+    strand.addStream(ws);
+  });
 });
 
-app.get(prefix+'/status/:token', function(req, res) {
-  res.header('Access-Control-Allow-Origin', '*');
-  const status = scheduler.getStatus(req.params.token);
-  if (typeof status === 'undefined') {
-    res.send(404);
-  } else {
-    res.send(JSON.stringify(status));
+server.on('error', (e) => {
+  if (e.code === 'EADDRINUSE') {
+    console.error(`Port ${port} is already in use. Is another blinken ` +
+      'server running? Stop it, or set PORT to use a different port.');
+    process.exit(1);
   }
+  throw e;
 });
-
-app.get(prefix+'/current', function(req, res) {
-  res.header('Access-Control-Allow-Origin', '*');
-  const params = runner.getCurrent();
-  const timeLeft = (params.start + params.limit) - Date.now()/1000;
-  const currentJob = {is_idle: params.idle, url: params.url,
-    time_left: Math.round(timeLeft*1000)/1000,
-    title: params.title, author: params.author};
-  res.send(JSON.stringify(currentJob));
+server.listen(port, host, () => {
+  console.log(`Listening on ${host}:${port}`);
 });
-
-app.all(prefix+'/cancel/:token', function(req, res) {
-  res.header('Access-Control-Allow-Origin', '*');
-  if (typeof scheduler.getStatus(req.params.token) === 'undefined') {
-    res.sendStatus(404);
-  } else {
-    scheduler.cancelJob(req.params.token);
-    res.send('');
-  }
-});
-
-const host = 'localhost';
-const port = 3000;
-app.listen(port, host);
-console.log('Listening on ' + host + ':' + port);
+scheduler.loop();

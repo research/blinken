@@ -1,16 +1,47 @@
+# systemd unit for the blinken.org server
+# Install as /etc/systemd/system/blinken.service. Put the admin login in
+# /etc/blinken/blinken.env (mode 600):
+#   BLINKEN_ADMIN_USER=...
+#   BLINKEN_ADMIN_PASSWORD=...
+
 [Unit]
-Description=Blinken.org server service
+Description=blinken.org server
 After=network.target
 StartLimitIntervalSec=0
 
 [Service]
 Type=simple
+WorkingDirectory=/srv/blinken/server
+ExecStart=/usr/bin/node --disable-warning=ExperimentalWarning /srv/blinken/server/server.js
+Environment=NODE_ENV=production
+Environment=BLINKEN_DB=/var/lib/blinken/blinken.db
+EnvironmentFile=-/etc/blinken/blinken.env
 Restart=always
 RestartSec=1
-User=www-data
-WorkingDirectory=/home/jhalderm/blinken/server
-ExecStart=/home/jhalderm/blinken/server/server.js
-ProtectHome=no
+
+# Run as the blinken system user, able to write only its state directory
+User=blinken
+Group=blinken
+StateDirectory=blinken
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectKernelLogs=yes
+ProtectControlGroups=yes
+ProtectClock=yes
+ProtectHostname=yes
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+RestrictNamespaces=yes
+RestrictRealtime=yes
+LockPersonality=yes
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+# MemoryDenyWriteExecute is left off because V8's JIT needs it
+MemoryMax=1G
 
 [Install]
 WantedBy=multi-user.target

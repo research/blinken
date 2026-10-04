@@ -3,7 +3,6 @@
 node_modules
 .*
 strand-ip.conf
-gallery/cache/*
-server/uploads/*
-nohup.out
-praw.ini
+*.db
+*.db-shm
+*.db-wal

@@ -1,253 +1,252 @@
-const crypto = require('crypto');
-const fs = require('fs');
-const runner = require('./runner.js');
-const https = require('https');
-const vm = require('vm');
-const util = require('util');
+// Queues shows for the stairs and plays them one at a time. When the
+// queue is empty, plays gallery shows (weighted by votes) until someone
+// queues a show.
 
-const jobs = {};
-const queue = [];
-let stopTime = 0;
+import crypto from 'node:crypto';
+import fs from 'node:fs';
+import {Show, wrapLegacy} from './sandbox.js';
 
-exports.makeJob = function(code, url, title, author) {
-  const token = makeToken();
-  jobs[token] = {code: code, url: url, title: title, author: author, limit: 120,
-    cancel: false, status: {}};
-  return token;
+const JOB_LIMIT_S = 120;
+const IDLE_LIMIT_S = 60;
+const CANCEL_POLL_MS = 100;
+const JOB_RETENTION_MS = 60 * 60 * 1000;
+
+// Status values understood by client.js and the playground
+export const QUEUED = 10;
+export const RUNNING = 20;
+export const DONE = 0;
+export const FAILED = -10;
+
+const circus = {
+  script: wrapLegacy(fs.readFileSync(
+      new URL('./idle.js', import.meta.url), 'utf8')),
+  title: 'Circus',
+  author: '',
+  url: '',
 };
 
-exports.queueJob = function(token) {
-  if (typeof jobs[token] === 'undefined') {
-    return;
-  }
-  jobs[token].status = {value: 10, message: 'Queued'};
-  jobs[token].cancel = false;
-  queue.push(token);
-};
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-exports.cancelJob = function(token) {
-  if (typeof jobs[token] === 'undefined') {
-    return;
-  }
-  jobs[token].cancel = true;
-  jobs[token].status = {value: 0, message: 'Canceled'};
-};
-
-exports.getTimeLeft = function() {
-  return stopTime - Date.now()/1000;
-};
-
-exports.setTimeLeft = function(limit) {
-  stopTime = Date.now()/1000 + limit;
-};
-
-function estimateWait(token) {
-  if (typeof jobs[token] === 'undefined') {
-    return undefined;
-  }
-  let wait = stopTime - Date.now()/1000;
-  if (wait < 0) {
-    wait = 0;
-  }
-  for (let i=0; i < queue.length; i++) {
-    const t = queue[i];
-    if (t == token) {
-      break;
-    }
-    if (!jobs[t].cancel) {
-      wait += jobs[t].limit;
-    }
-  }
-  return wait;
+function formatWait(seconds) {
+  const s = Math.max(0, Math.round(seconds));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-exports.getStatus = function(token) {
-  if (typeof jobs[token] === 'undefined') {
-    return undefined;
+export class Scheduler {
+  constructor({db, strand, siteUrl = 'https://blinken.org', log = console}) {
+    this.db = db;
+    this.strand = strand;
+    this.siteUrl = siteUrl;
+    this.log = log;
+    this.jobs = new Map();
+    this.queue = [];
+    this.current = null;
+    this.lastIdleId = null;
+    this.running = false;
   }
-  if (jobs[token].status.value == 10) {
-    // estimate time left in queue
-    const wait = Math.round(estimateWait(token));
-    const m = Math.floor(wait / 60); const s = wait - 60*m;
-    let out = m + ':';
-    if (s < 10) {
-      out += '0';
-    }
-    out += s;
-    jobs[token].status.message = 'Queued (' + out + ')';
-  }
-  return jobs[token].status;
-};
 
-function makeToken() {
-  return crypto.randomBytes(16).toString('hex');
-}
-
-function runLocalShow(callback) {
-  console.log('Falling back to default idle code');
-  fs.readFile(__dirname + '/idle.js', 'utf8', function(err, data) {
-    if (err) {
-      throw new Error(err);
-    }
-    callback({code: data, title: 'Circus'});
-  });
-}
-
-function getIdleCode(callback) {
-  // Run a program from the gallery to get the metadata and 'run'
-  // function from the Blinken object.
-  return https.get('https://blinken.org/api/0/random', function(res) {
-    let output = '';
-    if (res.statusCode != 200) {
-      console.log('Failed to get random show: HTTP ' + res.statusCode +
-                  ' (is the gallery running?)');
-      return runLocalShow(callback);
-    }
-    res.on('data', (chunk) => {
-      output += chunk;
+  // Queue a show that has already passed checkShow(). Returns its token.
+  // With first, it goes to the front of the queue.
+  submit({script, title, author, url, first = false}) {
+    const token = crypto.randomBytes(16).toString('hex');
+    this.jobs.set(token, {
+      token, script, title: title || 'Untitled', author: author || '',
+      url: url || '', limit: JOB_LIMIT_S, cancel: false,
+      status: {value: QUEUED, message: 'Queued'}, finished: null,
     });
-    res.on('end', () => {
-      // output is (hopefully) JSON with code, url, and name members
-      // code is (hopefully) some JavaScript, but it uses the Blinken object
-      // which is undefined here. So we want to mock up a Blinken object.
-      let galleryObj;
-      let code;
-      try {
-        galleryObj = JSON.parse(output);
-        code = galleryObj.code;
-      } catch (e) {
-        console.log('JSON parse error: ' + e);
-        return runLocalShow(callback);
-      }
-      const fakeWindow = {};
-      fakeWindow.runnerWindow = {};
-      fakeWindow.runnerWindow.protect = function() {};
-      fakeWindow.onload = function() {};
-      let blinkenObj = {};
-      function blinken(obj) {
-        if (typeof obj !== 'undefined') {
-          blinkenObj = obj;
-        }
-      }
-      let blinkenCode;
-      blinken.prototype.run = function(code) {
-        blinkenCode = code.toString();
-      };
-      const sandbox = {window: fakeWindow, Blinken: blinken};
-      const options = {timeout: 100,
-        contextCodeGeneration: {
-          strings: false,
-          wasm: false,
-        }};
-      try {
-        vm.createContext(sandbox);
-        vm.runInContext(code.toString() + '\nwindow.onload();\n',
-            sandbox, options);
-        if (!blinkenCode) {
-          throw new Error('Code did not create a Blinken object');
-        }
-        let title = blinkenObj.title;
-        if (!title) {
-          title = galleryObj.title;
-        }
-        if (!title) {
-          title = 'Untitled';
-        }
-        return callback({code: blinkenCode, url: galleryObj.url,
-          title: title, author: blinkenObj.author});
-      } catch (e) {
-        if (e.name === 'SyntaxError') {
-          console.log('Syntax error: ' + e.stack);
-          console.log(util.inspect(sandbox));
-        }
-        console.log('Idle error: ' + e.toString());
-        return runLocalShow(callback);
-      }
-    });
-    res.on('error', function(e) {
-      console.log('Got HTTP error: ' + e.message);
-      return runLocalShow(callback);
-    });
-  }).on('error', function(e) {
-    console.log('Got HTTP error: ' + e.message);
-    return runLocalShow(callback);
-  });
-}
-
-function safeHash(data) {
-  return crypto.createHash('sha256').update(data).digest('hex');
-}
-
-function saveCode(code) {
-  const uploadPath = __dirname + '/uploads/';
-  const hash = safeHash(code);
-  console.log('job hash: ' + hash);
-  files = fs.readdirSync(uploadPath);
-  if (files.filter(function(x) {
-    return x.search(hash)>=0;
-  }).length == 0) {
-    fs.writeFileSync(uploadPath + '/' + hash + '.js', code);
+    if (first) {
+      this.queue.unshift(token);
+    } else {
+      this.queue.push(token);
+    }
+    return token;
   }
-}
 
-function scheduler() {
-  if (queue.length > 0) {
-    const token = queue.shift();
-    if (jobs[token].cancel) {
-      return scheduler();
+  status(token) {
+    const job = this.jobs.get(token);
+    if (!job) {
+      return undefined;
     }
-    jobs[token].status = {value: 20, message: 'Running'};
-    stopTime = Date.now()/1000 + jobs[token].limit;
-    saveCode(jobs[token].code);
-    if (!jobs[token].title) {
-      // TODO: Some gallery shows don't define a title in the
-      // Blinken object, but they do have a name in the Reddit
-      // post. We used to cache the URLs when retrieving idle
-      // shows from the Gallery and try to match them to the
-      // mangled URLs in referers, but the code was a huge mess.
-      // An alternative would be to correct the older gallery
-      // samples, if possible.
-      jobs[token].title = 'Untitled';
+    if (job.status.value === QUEUED) {
+      return {value: QUEUED, message: `Queued (${formatWait(this.wait(token))})`};
     }
-    return runner.run({ // User program
-      code: jobs[token].code,
-      url: jobs[token].url,
-      idle: false,
-      title: jobs[token].title,
-      author: jobs[token].author,
-      limit: jobs[token].limit,
-      cancel: function() {
-        return jobs[token].cancel;
-      },
-      after: function(status, message) {
-        if (status == 0) {
-          jobs[token].status = {value: 0, message: message};
+    return job.status;
+  }
+
+  cancel(token) {
+    const job = this.jobs.get(token);
+    if (!job) {
+      return false;
+    }
+    job.cancel = true;
+    if (job.status.value === QUEUED) {
+      this.finish(job, DONE, 'Canceled');
+    }
+    return true;
+  }
+
+  // Estimated seconds until a queued job starts
+  wait(token) {
+    let wait = this.current ?
+      Math.max(0, this.current.deadline - Date.now()) / 1000 : 0;
+    if (this.current?.idle) {
+      wait = 0;
+    }
+    for (const t of this.queue) {
+      if (t === token) {
+        break;
+      }
+      if (!this.jobs.get(t).cancel) {
+        wait += this.jobs.get(t).limit;
+      }
+    }
+    return wait;
+  }
+
+  // What's playing, in the format of the /current API
+  nowPlaying() {
+    const c = this.current;
+    if (!c) {
+      return {is_idle: true, url: '', time_left: 0, title: '', author: ''};
+    }
+    return {
+      is_idle: c.idle,
+      url: c.url,
+      time_left: Math.round(Math.max(0, c.deadline - Date.now())) / 1000,
+      title: c.title,
+      author: c.author,
+    };
+  }
+
+  finish(job, value, message) {
+    job.status = {value, message};
+    job.finished = Date.now();
+  }
+
+  prune() {
+    const cutoff = Date.now() - JOB_RETENTION_MS;
+    for (const [token, job] of this.jobs) {
+      if (job.finished && job.finished < cutoff) {
+        this.jobs.delete(token);
+      }
+    }
+  }
+
+  // Pick an approved gallery show, favoring well-voted ones and avoiding
+  // an immediate repeat
+  pickIdle() {
+    let shows = this.db.listShows({status: 'approved', sort: 'new'});
+    if (shows.length > 1) {
+      shows = shows.filter((s) => s.id !== this.lastIdleId);
+    }
+    if (shows.length === 0) {
+      return null;
+    }
+    const weights = shows.map(
+        (s) => Math.min(Math.max((s.up + 1) / (s.down + 1), 0.25), 4));
+    let r = Math.random() * weights.reduce((a, b) => a + b, 0);
+    for (let i = 0; i < shows.length; i++) {
+      r -= weights[i];
+      if (r <= 0) {
+        return shows[i];
+      }
+    }
+    return shows[shows.length - 1];
+  }
+
+  async loop() {
+    this.running = true;
+    while (this.running) {
+      this.prune();
+      const token = this.queue.shift();
+      if (token) {
+        const job = this.jobs.get(token);
+        if (!job || job.cancel) {
+          continue;
+        }
+        job.status = {value: RUNNING, message: 'Running'};
+        const result = await this.play({...job, idle: false},
+            () => job.cancel);
+        this.finish(job, result.ok ? DONE : FAILED, result.message);
+        continue;
+      }
+
+      const pick = this.pickIdle();
+      let idle = circus;
+      if (pick) {
+        this.lastIdleId = pick.id;
+        idle = {
+          script: this.db.getShow(pick.id).code,
+          title: pick.title,
+          author: pick.author,
+          url: `${this.siteUrl}/play/?show=${pick.id}`,
+        };
+      }
+      const result = await this.play(
+          {...idle, limit: IDLE_LIMIT_S, idle: true},
+          () => this.queue.length > 0);
+      if (!result.ok) {
+        this.log.warn(`Idle show "${idle.title}" failed: ${result.message}`);
+        if (pick) {
+          // Fill the time with the built-in show instead
+          await this.play({...circus, limit: IDLE_LIMIT_S, idle: true},
+              () => this.queue.length > 0);
         } else {
-          jobs[token].status = {value: -10, message: message};
+          await sleep(1000);
         }
-        scheduler();
-      },
-    });
+      }
+    }
   }
-  return getIdleCode( function(idleObj) {
-    return runner.run({ // Idle program
-      code: idleObj.code,
-      url: idleObj.url,
-      title: idleObj.title,
-      author: idleObj.author,
-      idle: true,
-      limit: 60,
-      cancel: function() {
-        return queue.length > 0;
-      },
-      after: function(status, message) {
-        if (status != 0) {
-          console.log('Error in idle code: ' + message);
-        }
-        scheduler();
-      },
-    });
-  });
-}
 
-scheduler();
+  stop() {
+    this.running = false;
+  }
+
+  // Play a show until it finishes, fails, runs out of time, or
+  // isCancelled() returns true. Returns {ok, message}.
+  async play({script, title, author, url, limit, idle}, cancelled) {
+    const isCancelled = () => !this.running || cancelled();
+    const deadline = Date.now() + limit * 1000;
+    let show;
+    try {
+      show = await Show.start(script);
+    } catch (e) {
+      return {ok: false, message: `Error during initialization: ${e.message}`};
+    }
+    this.current = {idle, title: title || show.title || 'Untitled',
+      author: author || show.author || '', url, deadline};
+    try {
+      this.strand.show(show.frame);
+      for (;;) {
+        // A static show holds its first frame until time runs out
+        let wakeAt = deadline;
+        if (show.animated) {
+          const res = await show.next();
+          this.strand.show(res.frame);
+          if (res.delay === null) {
+            return {ok: true, message: 'Completed'};
+          }
+          wakeAt = Math.min(Date.now() + res.delay, deadline);
+        }
+        // Wait until the next step is due, checking for cancellation
+        while (Date.now() < wakeAt) {
+          if (isCancelled()) {
+            return {ok: true, message: 'Canceled'};
+          }
+          await sleep(Math.min(CANCEL_POLL_MS, wakeAt - Date.now()));
+        }
+        if (isCancelled()) {
+          return {ok: true, message: 'Canceled'};
+        }
+        if (Date.now() >= deadline) {
+          return {ok: true, message: 'Time\'s up'};
+        }
+      }
+    } catch (e) {
+      return {ok: false, message: `Error in step function: ${e.message}`};
+    } finally {
+      show.stop();
+      this.current = null;
+    }
+  }
+}
